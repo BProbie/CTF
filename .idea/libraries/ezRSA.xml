@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="ezRSA">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/我的题目/Crypto/ezRSA/ezRSA.zip!/" />
+      <root url="jar://$PROJECT_DIR$/我的题目/Crypto/ezRSA/题目.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
