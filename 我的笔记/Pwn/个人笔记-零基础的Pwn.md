@@ -46,12 +46,9 @@ ldd pwn
 
 ```shell
 sudo cp libc* /home/kali/Desktop/ctf/debug
-<<<<<<< HEAD
 pwninit --bin pwn --libc /home/kali/Desktop/ctf/debug/libc-*
 pwninit --bin pwn --libc /home/kali/Desktop/ctf/debug/libc.*
-=======
 pwninit --bin pwn --libc /home/kali/Desktop/ctf/debug/libc*
->>>>>>> origin/master
 sudo cp ld* /home/kali/Desktop/ctf/debug
 patchelf --set-interpreter /home/kali/Desktop/ctf/debug/ld* pwn
 patchelf --set-rpath /home/kali/Desktop/ctf/debug pwn

