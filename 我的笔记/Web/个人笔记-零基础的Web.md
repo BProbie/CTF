@@ -724,10 +724,10 @@ import fake_useragent
 request = requests
 session = requests.Session()
 
-def getByRequests(url: str, params: dict = None, data: dict = None) -> str: return request.get(url = url, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
-def postByRequests(url: str, data: dict = None, params: dict = None) -> str: return request.post(url = url, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
-def getBySession(url: str, params: dict = None, data: dict = None) -> str: return session.get(url = url, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
-def postBySession(url: str, data: dict = None, params: dict = None) -> str: return session.post(url = url, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
+def getByRequests(uri: str, params: dict = None, data: dict = None) -> str: return request.get(url = uri, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
+def postByRequests(uri: str, data: dict = None, params: dict = None) -> str: return request.post(url = url, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
+def getBySession(uri: str, params: dict = None, data: dict = None) -> str: return session.get(url = uri, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
+def postBySession(uri: str, data: dict = None, params: dict = None) -> str: return session.post(url = uri, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
 
 
 ```
