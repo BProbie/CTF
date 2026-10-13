@@ -25,3 +25,14 @@ bkcrack -C flag.zip -k a923d145 ecc0362d 296a6ff5 -U 123456.zip 123456
 ```shell
 bkcrack -C flag.zip -c flag.txt -k a923d145 ecc0362d 296a6ff5 -d flag.txt
 ```
+
+
+
+# 亦或LSB图
+
+```python
+from PIL import Image; import numpy as np
+p = np.array(Image.open('challenge.png'))
+Image.fromarray((((a[:,:,0]^a[:,:,1]^a[:,:,2]) >> 0) & 1)*255).save('xorLSB.png')
+```
+

