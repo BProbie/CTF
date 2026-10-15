@@ -4,7 +4,7 @@
 >
 > **比赛地址：https://pkwctf2026.play.ctfplus.cn/**
 >
-> **复现地址：https://pkwctf2026.play.ctfplus.cn/**
+> **复现地址：https://www.ctfplus.cn/learning/problem/excellent-problemSet/detail/2105939187948589056**
 
 > PKWCTF 面向成都东软学院全校师生以及校外全体网络安全爱好者，本次赛事采用两人一队的参赛形式，赛程持续一周。赛事主要以促进网络安全新人入门为主。“以赛促学、以赛促练”为核心理念，致力于打造一个高质量、强交流、重成长的网络安全竞技平台。  赛事设置校内赛道和社会赛道。营造公平、友好、积极向上的竞赛氛围。
 >
