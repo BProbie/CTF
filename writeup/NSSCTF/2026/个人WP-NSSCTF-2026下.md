@@ -14,6 +14,53 @@
 
 
 
+## Misc
+
+
+
+### [陇剑杯 2021]jwt（问2）
+
+#### 题目介绍
+
+> 1分
+>
+> 流量分析Webshell流量日志审计
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 昨天，单位流量系统捕获了黑客攻击流量，请您分析流量后进行回答：
+> 黑客绕过验证使用的jwt中，id和username是______。（中间使用#号隔开，例如1#admin）。得到的flag请使用NSSCTF{}格式提交。
+
+---
+
+#### 解题过程
+
+##### 1. Wireshark分析流量
+
+```shell
+Cookie: PHPSESSID=3f8coeg6hm9vf0h5lcoifmk8o5; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTAwODcsIk1hcENsYWltcyI6eyJ1c2VybmFtZSI6ImFkbWluIn19.rurQD5RYgMrFZow8r-k7KCP13P32sF-RpTXhKsxzvD0
+```
+
+##### 2. Base64解码
+
+```shell
+{"alg":"HS256","typ":"JWT"}{"id":10087,"MapClaims":{"aud":"admin","username":"admin"}}。。。
+```
+
+#### 题目答案
+
+##### Flag
+
+```flag
+NSSCTF{10087#admin}
+```
+
+
+
 ## Crtpto
 
 
