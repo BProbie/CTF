@@ -42,8 +42,6 @@ copy /b png.png + php.php payload.php.png
 
 
 
-
-
 # payload.phtml.png
 
 ```shell

